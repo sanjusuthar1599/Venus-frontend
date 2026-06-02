@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import PageHero from "./PageHero.jsx";
 import Reveal from "./Reveal.jsx";
@@ -19,7 +20,7 @@ function displayText(value) {
   return s.replace(/^["']|["']$/g, "").trim();
 }
 
-function ProjectCard({ project }) {
+function getProjectMedia(project) {
   const rawImage = project.project_images?.[0];
   const coverImage =
     rawImage && String(rawImage).trim()
@@ -29,6 +30,12 @@ function ProjectCard({ project }) {
     project.project_video && String(project.project_video).trim()
       ? uploadFileUrl("videos", project.project_video)
       : "";
+
+  return { coverImage, videoFile };
+}
+
+function ProjectCard({ project, onOpen }) {
+  const { coverImage, videoFile } = getProjectMedia(project);
   const gradient =
     gradientByType[project.project_type] ??
     "from-neutral-100 via-neutral-50 to-neutral-200";
@@ -39,7 +46,8 @@ function ProjectCard({ project }) {
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[1.35rem] bg-white shadow-[0_12px_40px_-12px_rgba(15,23,42,0.12)] ring-1 ring-neutral-200/60 transition duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_24px_56px_-16px_rgba(242,127,38,0.18)] hover:ring-[#f27f26]/25">
-      <div
+      <div 
+        onClick={onOpen}
         className={`relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-br sm:aspect-[3/4] ${gradient}`}
       >
         {/* Prefer video when present: image-first hid video when the image URL was missing/broken */}
@@ -87,8 +95,144 @@ function ProjectCard({ project }) {
         <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-500">
           {location}
         </p>
+        <button
+          type="button"
+          onClick={onOpen}
+          className="mt-5 inline-flex w-fit items-center gap-2 rounded-full border border-neutral-200 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-neutral-800 transition hover:border-[#f27f26]/40 hover:bg-[#f27f26]/5 hover:text-[#f27f26]"
+        >
+          View studio notes
+          <span aria-hidden>→</span>
+        </button>
       </div>
     </article>
+  );
+}
+
+function ProjectPreview({ project, onClose }) {
+  const { coverImage, videoFile } = getProjectMedia(project);
+  const title = displayText(project.project_name);
+  const location = displayText(project.project_location);
+  const typeLabel = displayText(project.project_type);
+
+  useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[999] flex items-end justify-center overflow-hidden bg-neutral-950/80 px-4 pb-4 pt-20 backdrop-blur-sm sm:items-center sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="project-preview-title"
+      onMouseDown={onClose}
+    >
+      <article
+        className="relative grid max-h-[88vh] w-full max-w-5xl overflow-hidden rounded-[2rem] bg-white shadow-2xl sm:grid-cols-[1.1fr_0.9fr]"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-900 shadow-lg transition hover:bg-white"
+          aria-label="Close project preview"
+        >
+          ×
+        </button>
+
+        <div className="relative min-h-[280px] bg-neutral-900 sm:min-h-[520px]">
+          {videoFile ? (
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              src={videoFile}
+              poster={coverImage || undefined}
+              controls
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          ) : coverImage ? (
+            <img
+              src={coverImage}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-neutral-800 to-[#f27f26]/30" />
+          )}
+        </div>
+
+        <div className="overflow-y-auto p-7 sm:p-9">
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#f27f26]">
+            {typeLabel || "Featured project"}
+          </p>
+          <h3
+            id="project-preview-title"
+            className="mt-3 text-2xl font-semibold tracking-tight text-neutral-950 sm:text-3xl"
+          >
+            {title || "Untitled project"}
+          </h3>
+          {location ? (
+            <p className="mt-3 text-sm leading-relaxed text-neutral-500">
+              {location}
+            </p>
+          ) : null}
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            {[
+              ["Design focus", "Layout, material palette, and lighting mood"],
+              ["Best for", typeLabel || "Residential and commercial spaces"],
+              ["Studio note", "Use this project as a reference for your consultation"],
+              ["Next step", "Share rooms, timeline, and inspiration images"],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
+              >
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">
+                  {label}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-800">
+                  {value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              to="/contact"
+              className="rounded-full bg-gradient-to-r from-[#f27f26] to-amber-500 px-6 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white shadow-lg shadow-[#f27f26]/20 transition hover:brightness-110"
+            >
+              Plan similar space
+            </Link>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-neutral-300 px-6 py-3 text-xs font-bold uppercase tracking-[0.15em] text-neutral-800 transition hover:border-neutral-900"
+            >
+              Back to gallery
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>,
+    document.body
   );
 }
 
@@ -110,6 +254,9 @@ const Portfolio = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
@@ -134,10 +281,48 @@ const Portfolio = () => {
     loadPosts();
   }, [loadPosts]);
 
+  const typeCounts = useMemo(() => {
+    return posts.reduce(
+      (acc, project) => {
+        const type = project.project_type;
+        acc.All += 1;
+        if (type) acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      },
+      { All: 0 }
+    );
+  }, [posts]);
+
   const visible = useMemo(() => {
-    if (filter === "All") return posts;
-    return posts.filter((p) => p.project_type === filter);
-  }, [posts, filter]);
+    const normalizedQuery = query.trim().toLowerCase();
+    const filtered = posts.filter((project) => {
+      const matchesType = filter === "All" || project.project_type === filter;
+      const searchable = [
+        project.project_name,
+        project.project_location,
+        project.project_type,
+      ]
+        .map(displayText)
+        .join(" ")
+        .toLowerCase();
+
+      return matchesType && searchable.includes(normalizedQuery);
+    });
+
+    return [...filtered].sort((a, b) => {
+      const aName = displayText(a.project_name);
+      const bName = displayText(b.project_name);
+
+      if (sortBy === "name") return aName.localeCompare(bName);
+      if (sortBy === "type") {
+        return displayText(a.project_type).localeCompare(displayText(b.project_type));
+      }
+
+      const aTime = new Date(a.createdAt || a.updatedAt || 0).getTime();
+      const bTime = new Date(b.createdAt || b.updatedAt || 0).getTime();
+      return bTime - aTime;
+    });
+  }, [posts, filter, query, sortBy]);
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-neutral-700">
@@ -163,6 +348,11 @@ const Portfolio = () => {
               Curated interiors and spaces — browse by category. Each card pulls
               live media from your studio API.
             </p>
+            {!loading && !error ? (
+              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
+                Showing {visible.length} of {posts.length} projects
+              </p>
+            ) : null}
           </div>
           </Reveal>
 
@@ -189,11 +379,45 @@ const Portfolio = () => {
                   }`}
                 >
                   {cat}
+                  <span className="ml-2 rounded-full bg-white/20 px-1.5 text-[10px]">
+                    {typeCounts[cat] ?? 0}
+                  </span>
                 </button>
               );
             })}
           </Reveal>
         </div>
+
+        {!loading && !error ? (
+          <Reveal
+            className="mt-10 grid gap-3 rounded-[1.5rem] border border-neutral-200 bg-white p-3 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.25)] sm:grid-cols-[1fr_auto]"
+            variant="up"
+            delay={90}
+          >
+            <label className="relative block">
+              <span className="sr-only">Search projects</span>
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search by project, location, or category"
+                className="h-12 w-full rounded-2xl border border-transparent bg-neutral-50 px-4 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-[#f27f26]/35 focus:bg-white focus:ring-2 focus:ring-[#f27f26]/15"
+              />
+            </label>
+            <label className="block">
+              <span className="sr-only">Sort projects</span>
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+                className="h-12 w-full rounded-2xl border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 outline-none transition focus:border-[#f27f26]/35 focus:ring-2 focus:ring-[#f27f26]/15 sm:w-44"
+              >
+                <option value="newest">Newest first</option>
+                <option value="name">Name A-Z</option>
+                <option value="type">Category</option>
+              </select>
+            </label>
+          </Reveal>
+        ) : null}
 
         {loading && (
           <ul className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
@@ -227,7 +451,10 @@ const Portfolio = () => {
                   delay={(i % 9) * 65}
                   variant={i % 4 === 2 ? "scale" : "up"}
                 >
-                  <ProjectCard project={project} />
+                  <ProjectCard
+                    project={project}
+                    onOpen={() => setSelectedProject(project)}
+                  />
                 </Reveal>
               </li>
             ))}
@@ -237,7 +464,7 @@ const Portfolio = () => {
         {!loading && !error && visible.length === 0 && (
           <div className="mt-16 rounded-3xl border border-dashed border-neutral-200 bg-white px-8 py-14 text-center">
             <p className="mx-auto max-w-md text-sm leading-relaxed text-neutral-500">
-              No projects in this category yet. Upload with{" "}
+              No projects match this view yet. Try another category or search, or upload with{" "}
               <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-xs text-neutral-700">
                 project_type
               </code>{" "}
@@ -265,6 +492,13 @@ const Portfolio = () => {
         </div>
         </Reveal>
       </div>
+
+      {selectedProject ? (
+        <ProjectPreview
+          project={selectedProject}
+          onClose={() => setSelectedProject(null)}
+        />
+      ) : null}
     </div>
   );
 };

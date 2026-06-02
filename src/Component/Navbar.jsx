@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 const linkBase =
   "rounded-md px-3 py-2 text-sm font-medium uppercase tracking-wide transition-all duration-300 hover:bg-white/10 hover:-translate-y-px active:translate-y-0";
@@ -85,7 +85,9 @@ const Navbar = () => {
 
           {/* Logo */}
           <div className="flex items-center">
-            <img src="/venus_logo.png" alt="Venus Logo" className="h-21 w-auto sm:h-36" />
+          <Link to="/">
+            <img src="/venus_logo.png" alt="Venus Logo" className="h-[192px] mt-4 max-[550px]:ml-[-30px]" />
+            </Link>
           </div>
 
           {/* Desktop Menu */}

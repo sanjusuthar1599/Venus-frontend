@@ -32,7 +32,7 @@ const About = () => {
       <PageHero
         title="About Us"
         breadcrumbLabel="About Us"
-        imageSrc="/about.png"
+        imageSrc="/venus_about_photo.png"
         imageGrayscale
         size="tall"
       />
