@@ -106,7 +106,7 @@ const Contact = () => {
         <PageHero
         title="Contact Us"
         breadcrumbLabel="Contact Us"
-        imageSrc="/public/contect_us.webp"
+        imageSrc="/contect_us.webp"
         imageGrayscale={false}
         size="tall"
       />
