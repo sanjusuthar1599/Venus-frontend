@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import PageHero from "./PageHero.jsx";
 import Reveal from "./Reveal.jsx";
 
@@ -82,10 +82,13 @@ const roomOptions = [
   "Living room",
   "Kitchen",
   "Bedroom",
+  "Children room",
   "Wardrobe",
   "Office",
   "Full home",
 ];
+
+const bhkOptions = ["1BHK", "2BHK", "3BHK", "4BHK", "Other"];
 
 const budgetOptions = [
   { value: "essential", label: "Essential", note: "Smart refresh with controlled finishes" },
@@ -109,23 +112,43 @@ function TaglineRule({ flip }) {
 }
 
 const Services = () => {
+  const location = useLocation();
+  const [selectedBhk, setSelectedBhk] = useState("2BHK");
   const [selectedRooms, setSelectedRooms] = useState(["Living room", "Kitchen"]);
   const [budget, setBudget] = useState("premium");
   const [timeline, setTimeline] = useState("planned");
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const bhk = params.get("bhk");
+    const room = params.get("room");
+
+    if (bhk && bhkOptions.includes(bhk)) {
+      setSelectedBhk(bhk);
+    }
+    if (room && roomOptions.includes(room)) {
+      setSelectedRooms([room]);
+    }
+  }, [location.search]);
+
   const plannerResult = useMemo(() => {
     const roomCount = selectedRooms.length || 1;
+    const bhkWeight =
+      selectedBhk === "Other" ? 3 : Number.parseInt(selectedBhk, 10) || 2;
     const budgetMultiplier = budget === "luxury" ? 1.35 : budget === "premium" ? 1.1 : 0.85;
     const timelineLabel =
       timelineOptions.find((item) => item.value === timeline)?.label ?? "Flexible";
     const selectedBudget = budgetOptions.find((item) => item.value === budget);
     const packageName =
-      roomCount >= 5 || selectedRooms.includes("Full home")
+      selectedBhk === "4BHK" || roomCount >= 5 || selectedRooms.includes("Full home")
         ? "Turnkey Execution"
-        : roomCount >= 3
+        : selectedBhk === "3BHK" || roomCount >= 3
           ? "Detailed Interiors"
           : "Design Direction";
-    const consultationScore = Math.round((roomCount * 18 + budgetMultiplier * 32) / 5) * 5;
+    const consultationScore = Math.min(
+      95,
+      Math.round((roomCount * 14 + bhkWeight * 10 + budgetMultiplier * 28) / 5) * 5
+    );
 
     return {
       packageName,
@@ -133,7 +156,7 @@ const Services = () => {
       budgetNote: selectedBudget?.note,
       consultationScore,
     };
-  }, [budget, selectedRooms, timeline]);
+  }, [budget, selectedBhk, selectedRooms, timeline]);
 
   const toggleRoom = (room) => {
     setSelectedRooms((current) => {
@@ -152,7 +175,7 @@ const Services = () => {
       <PageHero
         title="Services"
         breadcrumbLabel="Services"
-        imageSrc="/service.avif"
+        imageSrc="/service.jpg"
         imageGrayscale={false}
         size="tall"
       />
@@ -260,7 +283,8 @@ const Services = () => {
         </div>
 
         <Reveal
-          className="mx-auto mt-20 max-w-7xl overflow-hidden rounded-[2rem] border border-neutral-200 bg-neutral-950 text-white shadow-[0_26px_70px_-30px_rgba(15,23,42,0.55)] sm:mt-24"
+          id="project-planner"
+          className="mx-auto mt-20 max-w-7xl scroll-mt-32 overflow-hidden rounded-[2rem] border border-neutral-200 bg-neutral-950 text-white shadow-[0_26px_70px_-30px_rgba(15,23,42,0.55)] sm:mt-24 lg:scroll-mt-36"
           variant="scale"
         >
           <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
@@ -281,9 +305,34 @@ const Services = () => {
                   Build a quick consultation brief before you call
                 </h2>
                 <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/70">
-                  Select rooms, finish level, and timeline. The planner suggests the
-                  best starting package for your interior project.
+                  Select BHK, rooms, finish level, and timeline. The planner suggests
+                  the best starting package for your interior project.
                 </p>
+
+                <div className="mt-8">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/55">
+                    Select BHK
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                    {bhkOptions.map((bhk) => {
+                      const active = selectedBhk === bhk;
+                      return (
+                        <button
+                          key={bhk}
+                          type="button"
+                          onClick={() => setSelectedBhk(bhk)}
+                          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                            active
+                              ? "bg-gradient-to-r from-[#f27f26] to-amber-500 text-white shadow-lg shadow-[#f27f26]/25"
+                              : "bg-white/10 text-white/80 hover:bg-white/15"
+                          }`}
+                        >
+                          {bhk}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
                 <div className="mt-8">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/55">
@@ -299,7 +348,7 @@ const Services = () => {
                           onClick={() => toggleRoom(room)}
                           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                             active
-                              ? "bg-[#f27f26] text-white shadow-lg shadow-[#f27f26]/25"
+                              ? "bg-gradient-to-r from-[#f27f26] to-amber-500 text-white shadow-lg shadow-[#f27f26]/25"
                               : "bg-white/10 text-white/80 hover:bg-white/15"
                           }`}
                         >
@@ -357,6 +406,14 @@ const Services = () => {
               <div className="mt-7 grid gap-3">
                 <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                    Home type
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/85">
+                    {selectedBhk}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
                     Selected scope
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-white/85">
@@ -382,18 +439,7 @@ const Services = () => {
                   </p>
                 </div>
               </div>
-              <div className="mt-7 rounded-3xl bg-gradient-to-r from-[#f27f26] to-amber-500 p-5">
-                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/75">
-                  Brief readiness
-                </p>
-                <p className="mt-2 text-4xl font-bold tabular-nums text-white">
-                  {plannerResult.consultationScore}%
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-white/85">
-                  Bring measurements, photos, and 3-5 inspiration references to make
-                  the first consultation sharper.
-                </p>
-              </div>
+              
               <Link
                 to="/contact"
                 className="mt-7 inline-flex w-full items-center justify-center rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-neutral-950 transition hover:bg-neutral-100"

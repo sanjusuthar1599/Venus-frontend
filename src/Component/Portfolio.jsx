@@ -342,7 +342,7 @@ const Portfolio = () => {
               aria-hidden
             />
             <h2 className="text-[1.65rem] font-semibold leading-tight tracking-tight text-neutral-900 sm:text-3xl lg:text-4xl">
-              Selected work
+              Our Work
             </h2>
             <p className="mt-4 max-w-md text-pretty text-[15px] leading-relaxed text-neutral-500 sm:text-base">
               Curated interiors and spaces — browse by category. Each card pulls

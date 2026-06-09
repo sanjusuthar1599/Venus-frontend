@@ -2,14 +2,34 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 /**
- * Scrolls the window to the top whenever the route pathname changes.
+ * Scrolls to hash targets when present, otherwise resets to the top.
  */
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const { hash, pathname, search } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    if (hash) {
+      const scrollToHash = () => {
+        const target = document.getElementById(hash.slice(1));
+        if (!target) return;
+
+        const headerOffset = 120;
+        const top =
+          target.getBoundingClientRect().top + window.scrollY - headerOffset;
+
+        window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+      };
+
+      const first = window.setTimeout(scrollToHash, 80);image.png
+      const second = window.setTimeout(scrollToHash, 350);
+      return () => {
+        window.clearTimeout(first);
+        window.clearTimeout(second);
+      };
+    }
+
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [hash, pathname, search]);
 
   return null;
 };

@@ -1,7 +1,11 @@
 import { createElement } from "react";
 import { Link } from "react-router-dom";
 import {
+  ArrowDownIcon,
+  CalendarDaysIcon,
+  CheckBadgeIcon,
   PaintBrushIcon,
+  MapPinIcon,
   Square3Stack3DIcon,
   HeartIcon,
   MagnifyingGlassIcon,
@@ -9,7 +13,11 @@ import {
   WrenchScrewdriverIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
+import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { useInView } from "../../hooks/useInView.js";
+import Budget from "./Budget.jsx";
+import Interior_Solutions from "./Interior_Solutions.jsx";
+import Statsconter from "./Statsconter.jsx";
 
 const highlights = [
   {
@@ -34,6 +42,42 @@ const stats = [
   { value: "200+", label: "Projects delivered" },
   { value: "18", label: "Countries & cities" },
   { value: "100%", label: "Detail-led process" },
+];
+
+const heroSocials = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/venus_interior_kalyan/",
+    icon: FaInstagram,
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/p/Venus-Interiors-100064131730971/",
+    icon: FaFacebookF,
+  },
+  {
+    label: "WhatsApp",
+    href: "https://wa.me/919653467488",
+    icon: FaWhatsapp,
+  },
+];
+
+const heroStats = [
+  {
+    value: "Modern Design",
+    label: "Timeless & Elegant",
+    icon: PaintBrushIcon,
+  },
+  {
+    value: "Custom Solutions",
+    label: "Tailored to You",
+    icon: Square3Stack3DIcon,
+  },
+  {
+    value: "Quality Assured",
+    label: "Premium Materials",
+    icon: CheckBadgeIcon,
+  },
 ];
 
 const showcaseTiles = [
@@ -119,7 +163,7 @@ const Home = () => {
   return (
     <div className="w-full overflow-x-hidden">
       {/* —— Hero —— */}
-      <section className="relative min-h-[100dvh] w-full overflow-hidden">
+      <section className="relative min-h-[100dvh] w-full overflow-hidden bg-neutral-950">
         <video
           className="absolute inset-0 z-0 h-full w-full scale-105 object-cover sm:scale-100"
           src="/interior-render.mp4"
@@ -143,15 +187,16 @@ const Home = () => {
         />
 
         <div
-          className="absolute inset-0 z-[2] bg-gradient-to-b"
+          className="absolute inset-0 z-[2] bg-gradient-to-b from-black/35 via-black/20 to-black/65"
           aria-hidden
         />
         <div
-          className="absolute inset-0 z-[2] bg-[radial-gradient(ellipse_120%_80%_at_50%_0%,transparent_0%,rgba(0,0,0,0.45)_100%)]"
+          // className="absolute inset-0 z-[2] bg-[radial-gradient(ellipse_120%_80%_at_50%_0%,transparent_0%,rgba(0,0,0,0.45)_100%)]" black effect for image
+           className="absolute inset-0 z-[2]" 
           aria-hidden
         />
 
-        <div className="relative z-10 flex min-h-[100dvh] w-full flex-col items-center justify-center px-5 pb-28 pt-28 text-center text-white sm:px-8 sm:pb-24 sm:pt-24 md:px-10">
+        <div className="relative z-10 flex min-h-[100dvh] w-full flex-col items-center justify-center px-5 pb-[21rem] pt-28 text-center text-white sm:px-8 sm:pb-64 sm:pt-24 md:px-10 lg:pb-48">
           <p className="home-animate-in home-animate-in--d1 mb-4 text-[10px] font-semibold uppercase tracking-[0.4em] text-amber-300/95 sm:text-xs sm:tracking-[0.35em]">
             Venus Interior
           </p>
@@ -193,15 +238,76 @@ const Home = () => {
             </Link>
            </div>
 
+          <div className="home-animate-in home-animate-in--d4 absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col items-center gap-4 md:flex lg:left-8">
+            <span className="h-20 w-px bg-gradient-to-b from-transparent via-white/45 to-[#f27f26]" />
+            {heroSocials.map(({ label, href, icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-white/10 text-white backdrop-blur-md transition hover:-translate-y-1 hover:border-[#f27f26] hover:bg-[#f27f26]"
+              >
+                {createElement(icon, { className: "h-4 w-4" })}
+              </a>
+            ))}
+            <span className="h-20 w-px bg-gradient-to-b from-[#f27f26] via-white/45 to-transparent" />
+          </div>
+
+          {/* <div className="home-animate-in home-animate-in--d4 absolute right-4 top-1/2 hidden w-72 -translate-y-1/2 rounded-[1.6rem] border border-white/25 bg-white/88 p-4 text-left text-neutral-950 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.65)] backdrop-blur-2xl lg:block xl:right-10">
+            <div className="space-y-3">
+              {heroCards.map(({ title, body, icon }) => (
+                <div key={title} className="flex items-center gap-4 rounded-2xl p-2.5">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#f27f26]/20 bg-[#f27f26]/10 text-[#f27f26]">
+                    {createElement(icon, {
+                      className: "h-6 w-6",
+                      "aria-hidden": true,
+                    })}
+                  </span>
+                  <span>
+                    <span className="block text-sm font-bold">{title}</span>
+                    <span className="block text-xs text-neutral-600">{body}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div> */}
+
+          <div className="home-animate-in home-animate-in--d5 absolute bottom-8 left-5 right-5 z-20 sm:left-8 sm:right-8 lg:left-1/2 lg:right-auto lg:w-[min(48rem,calc(100%-12rem))] lg:-translate-x-1/2">
+            <div className="grid gap-3 rounded-[1.35rem] border border-white/20 bg-white/90 p-4 text-left text-neutral-900 shadow-[0_22px_80px_-46px_rgba(0,0,0,0.75)] backdrop-blur-2xl sm:grid-cols-2 lg:grid-cols-3 lg:gap-0">
+              {heroStats.map(({ value, label, icon }, index) => (
+                <div
+                  key={label}
+                  className={`flex items-center gap-3 ${
+                    index > 0 ? "lg:border-l lg:border-neutral-200 lg:pl-4" : ""
+                  }`}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f27f26]/10 text-[#f27f26]">
+                    {createElement(icon, {
+                      className: "h-5 w-5",
+                      "aria-hidden": true,
+                    })}
+                  </span>
+                  <span>
+                    <span className="block text-lg font-semibold text-neutral-900 leading-none">
+                      {value}
+                    </span>
+                    <span className="mt-1 block text-[10px] font-medium leading-tight text-neutral-600">
+                      {label}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <a
             href="#home-features"
             aria-label="Scroll to main content"
-            className="home-animate-in home-animate-in--d5 absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.35em] text-white/70 transition hover:text-white sm:bottom-10"
+            className="home-animate-in home-animate-in--d5 home-scroll-dot absolute bottom-24 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-white/90 text-[#f27f26] shadow-lg backdrop-blur-md transition hover:bg-white sm:bottom-24 sm:right-8 lg:bottom-10"
           >
-            <span className="home-scroll-dot flex h-9 w-5 items-start justify-center rounded-full border border-white/35 bg-white/5 pt-2 backdrop-blur-sm">
-              <span className="h-2 w-0.5 rounded-full bg-gradient-to-b from-amber-200 to-[#f27f26]" />
-            </span>
-            Explore
+            <ArrowDownIcon className="h-5 w-5" />
           </a>
         </div>
       </section>
@@ -209,7 +315,7 @@ const Home = () => {
       {/* —— Features —— */}
       <section
         id="home-features"
-        className="relative border-t border-neutral-200/80 bg-gradient-to-b from-neutral-50 to-white py-16 sm:py-20 lg:py-28"
+        className="relative border-t border-neutral-200/80 bg-gradient-to-b from-neutral-50 to-white py-16 sm:py-20 lg:py-0"
       >
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f27f26]/30 to-transparent"
@@ -264,7 +370,7 @@ const Home = () => {
           </div>
 
           <div
-            className="home-stagger-item mt-12 flex justify-center sm:mt-16"
+            className="home-stagger-item mt-12 flex justify-center sm:mt-16 sm:mb-4"
             style={staggerStyle(4)}
           >
             <Link
@@ -284,7 +390,7 @@ const Home = () => {
       </section>
 
       {/* —— Editorial showcase (bento) —— */}
-      <section className="relative border-t border-neutral-200/80 bg-white py-16 sm:py-20 lg:py-28">
+      <section className="relative border-t border-neutral-200/80 bg-white py-16 sm:py-20 lg:py-16">
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent"
           aria-hidden
@@ -356,7 +462,7 @@ const Home = () => {
       </section>
 
       {/* —— Process —— */}
-      <section className="relative bg-gradient-to-b from-neutral-50 to-white py-16 sm:py-20 lg:py-28">
+      <section className="relative bg-gradient-to-b from-neutral-50 to-white py-16 sm:py-20 lg:py-16">
         <div
           ref={processRef}
           className={`mx-auto max-w-7xl px-5 sm:px-8 lg:px-10 ${processSectionClass}`}
@@ -431,38 +537,14 @@ const Home = () => {
         </div>
       </section>
 
+      {/* interior_solutions */}
+      <Interior_Solutions />
+
       {/* —— Stats —— */}
-      <section className="relative overflow-hidden bg-neutral-950 py-16 text-white sm:py-20 lg:py-24">
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(242,127,38,0.12),transparent)]"
-          aria-hidden
-        />
-        <div
-          ref={statsRef}
-          className={`relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-10 ${statsSectionClass}`}
-        >
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:gap-x-10 lg:grid-cols-4 lg:gap-x-4">
-            {stats.map(({ value, label }, i) => (
-              <div
-                key={label}
-                className={`home-stat-item text-center ${
-                  i > 0 ? "lg:border-l lg:border-white/10 lg:pl-6 xl:pl-10" : ""
-                }`}
-              >
-                <p className="text-3xl font-bold tabular-nums text-[#f27f26] sm:text-4xl lg:text-5xl">
-                  {value}
-                </p>
-                <p className="mt-2 text-[10px] font-medium uppercase leading-snug tracking-wider text-neutral-400 sm:text-xs sm:tracking-widest">
-                  {label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Statsconter />
 
       {/* —— Quote —— */}
-      <section className="border-t border-neutral-200 bg-white py-16 sm:py-20 lg:py-28">
+      <section className="border-t border-neutral-200 bg-white py-16 sm:py-20 lg:py-16">
         <div
           ref={quoteRef}
           className={`mx-auto max-w-4xl px-5 text-center transition-all duration-1000 ease-out sm:px-8 ${
@@ -492,6 +574,10 @@ const Home = () => {
           </p>
         </div>
       </section>
+
+
+            <Budget/>
+
 
       {/* —— CTA —— */}
       <section

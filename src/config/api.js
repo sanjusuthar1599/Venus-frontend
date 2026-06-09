@@ -1,5 +1,5 @@
-// const raw = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
-const raw = import.meta.env.VITE_API_URL ?? "https://venus-backend-f9lr.onrender.com";
+const raw = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+// const raw = import.meta.env.VITE_API_URL ?? "https://venus-backend-f9lr.onrender.com";
 
 
 export const API_BASE_URL = String(raw).replace(/\/$/, "");
