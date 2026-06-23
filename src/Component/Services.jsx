@@ -3,9 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHero from "./PageHero.jsx";
 import SectionHeading from "./ui/SectionHeading.jsx";
+import ServicesOfferSection from "./ui/ServicesOfferSection.jsx";
 import CtaBanner from "./ui/CtaBanner.jsx";
 import Reveal from "./Reveal.jsx";
-import { serviceDetails } from "../config/content.js";
 import { submitInquiry } from "../lib/submitInquiry.js";
 
 const accentGoldDark = "text-venus-tan-dark";
@@ -108,7 +108,6 @@ const timelineOptions = [
 
 const Services = () => {
   const location = useLocation();
-  const [activeService, setActiveService] = useState(0);
   const [selectedBhk, setSelectedBhk] = useState("2BHK");
   const [selectedRooms, setSelectedRooms] = useState(["Living room", "Kitchen"]);
   const [budget, setBudget] = useState("premium");
@@ -223,62 +222,7 @@ const Services = () => {
         size="tall"
       />
 
-      <section className="venus-section bg-white">
-        <div className="venus-container">
-          <Reveal>
-            <SectionHeading
-              label="What We Offer"
-              title="Elevated Interior Design Solutions"
-              description="Select a service to explore how we shape residential, commercial, and modular spaces."
-            />
-          </Reveal>
-
-          <div className="mt-12 grid gap-10 lg:mt-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
-            <Reveal variant="left">
-              <ul className="space-y-1 border-y border-black/5 py-2">
-                {serviceDetails.map((service, index) => {
-                  const active = activeService === index;
-                  return (
-                    <li key={service.title}>
-                      <button
-                        type="button"
-                        onClick={() => setActiveService(index)}
-                        className={`w-full border-l-2 py-4 pl-5 text-left transition ${
-                          active
-                            ? "border-venus-gold bg-venus-cream/60"
-                            : "border-transparent hover:border-venus-gold/30"
-                        }`}
-                      >
-                        <span
-                          className={`venus-title block text-[1.1rem] sm:text-[1.2rem] ${
-                            active ? "text-venus-gold" : "text-venus-text"
-                          }`}
-                        >
-                          {service.title}
-                        </span>
-                        {active ? (
-                          <p className="venus-desc mt-2 text-venus-grey">{service.desc}</p>
-                        ) : null}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Reveal>
-
-            <Reveal variant="right" delay={80}>
-              <div className="overflow-hidden rounded-sm shadow-lg">
-                <img
-                  key={serviceDetails[activeService].image}
-                  src={serviceDetails[activeService].image}
-                  alt={serviceDetails[activeService].title}
-                  className="aspect-[4/3] w-full object-cover transition duration-500"
-                />
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
+      <ServicesOfferSection />
 
       <section className="venus-section border-t border-black/5">
         <div className="venus-container">

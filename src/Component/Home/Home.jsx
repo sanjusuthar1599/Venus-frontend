@@ -16,7 +16,7 @@ import { Armchair, Building2, LayoutGrid, Lamp } from "lucide-react";
 import { business } from "../../config/business.js";
 import BudgetProjectsSection from "../ui/BudgetProjectsSection.jsx";
 import GoogleReviewsSlider from "../ui/GoogleReviewsSlider.jsx";
-import HeroScene3D from "../ui/HeroScene3D.jsx";
+import HeroMouseLayer from "../ui/HeroMouseLayer.jsx";
 import { useSpotlight } from "../../hooks/useSpotlight.js";
 
 import "swiper/css";
@@ -193,7 +193,7 @@ const Home = () => {
       {/* Hero */}
       <section
         ref={heroSectionRef}
-        className="home-hero-shell relative w-full overflow-hidden bg-venus-dark"
+        className="home-hero-shell hero-mouse-shell relative w-full overflow-hidden bg-venus-dark"
       >
         <div className="home-hero-media" aria-hidden>
           <div className="home-hero-video-wrap">
@@ -212,8 +212,7 @@ const Home = () => {
         </div>
         <div className="hero-dark-overlay absolute inset-0 z-[1]" aria-hidden />
         <div className="home-hero-vignette absolute inset-0 z-[1]" aria-hidden />
-        <HeroScene3D containerRef={heroSectionRef} />
-        <div className="home-hero-spotlight" aria-hidden />
+        <HeroMouseLayer containerRef={heroSectionRef} particleCount={56} />
 
         <div className="venus-container relative z-10 flex min-h-[inherit] flex-col justify-center pb-14 pt-[92px] sm:pb-16 sm:pt-[100px] lg:pb-20 lg:pt-[108px]">
           <div className="w-full max-w-[560px]">
