@@ -10,7 +10,8 @@ const ScrollToTop = () => {
   useEffect(() => {
     if (hash) {
       const scrollToHash = () => {
-        const target = document.getElementById(hash.slice(1));
+        const targetId = decodeURIComponent(hash.slice(1));
+        const target = document.getElementById(targetId);
         if (!target) return;
 
         const headerOffset = 120;
@@ -20,7 +21,7 @@ const ScrollToTop = () => {
         window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
       };
 
-      const first = window.setTimeout(scrollToHash, 80);image.png
+      const first = window.setTimeout(scrollToHash, 80);
       const second = window.setTimeout(scrollToHash, 350);
       return () => {
         window.clearTimeout(first);

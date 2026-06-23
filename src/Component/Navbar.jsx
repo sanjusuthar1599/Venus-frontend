@@ -1,344 +1,208 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-
-const linkBase =
-  "rounded-md px-3 py-2 text-sm font-medium uppercase tracking-wide transition-all duration-300 hover:bg-white/10 hover:-translate-y-px active:translate-y-0";
+import { PhoneIcon } from "@heroicons/react/24/outline";
+import { business } from "../config/business.js";
 
 const navigation = [
   { name: "Home", to: "/", end: true },
-  { name: "Services", to: "/services" },
-  { name: "Portfolio", to: "/portfolio" },
   { name: "About", to: "/about" },
+  { name: "Services", to: "/services" },
+  { name: "Projects", to: "/portfolio" },
+  { name: "Process", to: "/process" },
+  { name: "Blog", to: "/blog" },
   { name: "Contact", to: "/contact" },
-  { name: "Admin", to: "/admin" },
 ];
 
-const ACTIVE_THRESHOLD = 150;
-const ACTIVE_TWO_THRESHOLD = 600;
-const ACTIVE_THREE_MAX_SCROLL = 500;
+const ACTIVE_THRESHOLD = 60;
 
+/** Dark hero at top → white nav links */
+const DARK_HERO_PATHS = new Set([
+  "/",
+  "/about",
+  "/services",
+  "/portfolio",
+  "/process",
+  "/blog",
+  "/contact",
+]);
+
+function NavLinkItem({ item, onNavigate, mobile = false }) {
+  const desktopClass = "home-nav-link relative px-2 py-2 lg:px-2.5 xl:px-3";
+  const mobileClass =
+    "block rounded-lg px-4 py-3.5 text-sm font-medium uppercase tracking-[0.14em] text-venus-text transition hover:bg-venus-beige";
+
+  const base = mobile ? mobileClass : desktopClass;
+
+  return (
+    <NavLink
+      to={item.to}
+      end={item.end}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        `${base}${isActive ? (mobile ? " bg-venus-beige text-venus-gold" : " home-nav-link--active") : ""}`
+      }
+    >
+      {item.name}
+    </NavLink>
+  );
+}
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [active, setActive] = useState(false);
-  const [activeTwo, setActiveTwo] = useState(false);
-  const [activeThree, setActiveThree] = useState(false);
-  const lastScrollRef = useRef(0);
+  const [scrolled, setScrolled] = useState(false);
+
+  const solidBar = scrolled || mobileOpen;
+  const navOverDark =
+    DARK_HERO_PATHS.has(location.pathname) && !scrolled && !mobileOpen;
 
   useEffect(() => {
-    const onScroll = () => {
-      const scroll = window.scrollY;
-      const isScrollingUp = scroll < lastScrollRef.current;
-
-      if (scroll >= ACTIVE_TWO_THRESHOLD) {
-        setActive(true);
-        setActiveTwo(true);
-      } else if (scroll >= ACTIVE_THRESHOLD) {
-        setActive(true);
-        setActiveTwo(false);
-      } else {
-        setActive(false);
-        setActiveTwo(false);
-      }
-
-      if (isScrollingUp && scroll <= ACTIVE_THREE_MAX_SCROLL) {
-        setActiveThree(true);
-        setActiveTwo(false);
-      }
-
-      if (isScrollingUp && scroll === 0) {
-        setActive(false);
-        setActiveTwo(false);
-        setActiveThree(false);
-      }
-
-      if (!isScrollingUp && scroll > ACTIVE_THREE_MAX_SCROLL) {
-        setActiveThree(false);
-      }
-
-      lastScrollRef.current = scroll;
-    };
-
-    lastScrollRef.current = window.scrollY;
+    const onScroll = () => setScrolled(window.scrollY >= ACTIVE_THRESHOLD);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [location.pathname]);
 
-  const solidBar = active || mobileOpen;
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   return (
-    <nav
-      className={`absolute inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow,backdrop-filter] ${
-        activeTwo || mobileOpen
-          ? "border-white/10 bg-black/95 shadow-2xl shadow-black/35 backdrop-blur-sm !fixed -mt-[0px] transition-all duration-500 ease-out"
-          : solidBar
-            ? `border-white/10 bg-black/85 shadow-lg shadow-black/20 !fixed -mt-[130px] transition-all ${
-                activeThree ? "duration-500" : "duration-700"
-              } ease-out`
-            : "border-transparent bg-transparent"
-      }`}
-    >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-21 items-center justify-between">
+    <>
+      <nav
+        className={`venus-navbar fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+          navOverDark ? "nav-over-dark" : ""
+        } ${
+          solidBar
+            ? "venus-navbar--solid border-b border-black/[0.05] bg-venus-cream/95 shadow-[0_4px_24px_-12px_rgba(0,0,0,0.1)] backdrop-blur-md"
+            : "border-b border-transparent bg-transparent"
+        }`}
+      >
+        <div className="venus-container">
+          <div className="flex h-[68px] items-center gap-2 sm:h-[72px] lg:h-[76px]">
+            <Link to="/" className="venus-navbar__brand flex shrink-0 items-center gap-2 sm:gap-2.5">
+              <img
+                src="/venuslogo.png"
+                alt="Venus Interiors"
+                className="h-12 w-auto object-contain sm:h-16"
+              />
+            </Link>
 
-          {/* Logo */}
-          <div className="flex items-center">
-          <Link to="/">
-            <img src="/venus_logo.png" alt="Venus Logo" className="h-[192px] mt-4 max-[550px]:ml-[-30px]" />
+            <div className="hidden min-w-0 flex-1 items-center justify-center lg:flex">
+              <div className="flex flex-wrap items-center justify-center gap-0">
+                {navigation.map((item) => (
+                  <NavLinkItem key={item.name} item={item} />
+                ))}
+              </div>
+            </div>
+
+            <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+              <a
+                href={business.phoneHref}
+                className="venus-nav-call hidden md:inline-flex"
+                aria-label={`Call ${business.phone}`}
+                title={business.phone}
+              >
+                <span className="venus-nav-call__ring" aria-hidden />
+                <PhoneIcon className="venus-nav-call__icon h-[18px] w-[18px] sm:h-5 sm:w-5" aria-hidden />
+              </a>
+              <Link
+                to="/contact"
+                className="venus-btn-primary !min-h-[38px] !rounded-full !px-4 !py-2 !text-[9px] sm:!min-h-[40px] sm:!px-5 sm:!text-[10px] hidden md:inline-flex"
+              >
+                Book Consultation
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setMobileOpen((v) => !v)}
+                className="home-nav-toggle flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/70 text-venus-text backdrop-blur-sm lg:hidden sm:h-10 sm:w-10"
+                aria-expanded={mobileOpen}
+                aria-label="Toggle menu"
+              >
+                <span className={`home-nav-toggle-icon ${mobileOpen ? "is-open" : ""}`}>
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div
+        className={`home-mobile-drawer fixed inset-0 z-[60] lg:hidden ${
+          mobileOpen ? "pointer-events-auto" : "pointer-events-none"
+        }`}
+        aria-hidden={!mobileOpen}
+      >
+        <button
+          type="button"
+          className={`absolute inset-0 bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 ${
+            mobileOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close menu"
+        />
+        <div
+          className={`absolute right-0 top-0 flex h-full w-[min(300px,88vw)] flex-col bg-venus-cream shadow-[-8px_0_40px_rgba(0,0,0,0.15)] transition-transform duration-300 ease-out ${
+            mobileOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-black/5 px-5 py-4">
+            <span className="font-serif text-sm uppercase tracking-[0.18em] text-venus-text">
+              Menu
+            </span>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-lg text-venus-text"
+              aria-label="Close menu"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4">
+            {navigation.map((item, index) => (
+              <div
+                key={item.name}
+                className="home-mobile-nav-item"
+                style={{ animationDelay: `${index * 45}ms` }}
+              >
+                <NavLinkItem item={item} mobile onNavigate={() => setMobileOpen(false)} />
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-black/5 p-4 space-y-3">
+            <a
+              href={business.phoneHref}
+              className="venus-nav-call venus-nav-call--mobile flex min-h-[44px] w-full"
+              aria-label={`Call ${business.phone}`}
+            >
+              <span className="venus-nav-call__ring" aria-hidden />
+              <PhoneIcon className="venus-nav-call__icon h-5 w-5" aria-hidden />
+              <span>Call {business.phone}</span>
+            </a>
+            <Link
+              to="/contact"
+              onClick={() => setMobileOpen(false)}
+              className="venus-btn-primary flex min-h-[44px] w-full !rounded-full"
+            >
+              Book Consultation
             </Link>
           </div>
-
-          {/* Desktop Menu */}
-          <div className="hidden md:flex md:items-center md:space-x-1">
-            {navigation.map((item) =>
-              item.to ? (
-  <NavLink
-                key={item.name}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `group relative px-4 py-2 text-sm font-medium uppercase tracking-wider transition-all duration-300 ${
-                    isActive
-                      ? "text-amber-400"
-                      : "text-white hover:text-amber-400"
-                  }`
-                }
-              >
-                {item.name}
-
-                <span
-                  className="
-                    absolute
-                    left-1/2
-                    bottom-0
-                    h-[2px]
-                    w-0
-                    -translate-x-1/2
-                    bg-gradient-to-r
-                    from-amber-400
-                    to-yellow-300
-                    transition-all
-                    duration-300
-                    group-hover:w-3/4
-                  "
-                />
-              </NavLink>
-              ) : (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className={`${linkBase} text-white/90 hover:text-white`}
-                >
-                  {item.name}
-                </a>
-              )
-            )}
-          </div>
-
-          {/* Mobile Button */}
-          <button
-            type="button"
-            onClick={() => setMobileOpen((v) => !v)}
-            className="md:hidden text-white hover:text-white/80 focus:outline-none"
-            aria-expanded={mobileOpen}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <span className="text-2xl">✖</span>
-            ) : (
-              <span className="text-2xl">☰</span>
-            )}
-          </button>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <div className="border-t border-white/10 bg-black px-2 pb-3 pt-2 md:hidden">
-          {navigation.map((item) => (
-            item.to ? (
-              <NavLink
-                key={item.name}
-                to={item.to}
-                end={item.end}
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  `block rounded-xl px-4 py-3 text-sm font-medium uppercase tracking-wider transition-all ${
-                    isActive
-                      ? "bg-white/10 text-amber-400"
-                      : "text-white hover:bg-white/10"
-                  }`
-                }
-              >
-                {item.name}
-              </NavLink>
-            ) : (
-              <a
-                key={item.name}
-                href={item.href}
-                className="block rounded-md px-3 py-2 text-base font-medium uppercase tracking-wide text-white/90 hover:bg-white/10 hover:text-white"
-                onClick={() => setMobileOpen(false)}
-              >
-                {item.name}
-              </a>
-            )
-          ))}
-        </div>
-      )}
-    </nav>
+    </>
   );
 };
 
 export default Navbar;
-
-
-
-
-
-
-
-
-
-
-// import { useEffect, useState } from "react";
-// import { Link, NavLink } from "react-router-dom";
-
-// const navigation = [
-//   { name: "Home", to: "/", end: true },
-//   { name: "Services", to: "/services" },
-//   { name: "Portfolio", to: "/portfolio" },
-//   { name: "About", to: "/about" },
-//   { name: "Contact", to: "/contact" },
-//   { name: "Admin", to: "/admin" },
-// ];
-
-// const Navbar = () => {
-//   const [mobileOpen, setMobileOpen] = useState(false);
-//   const [scrolled, setScrolled] = useState(false);
-
-//   useEffect(() => {
-//     const handleScroll = () => {
-//       setScrolled(window.scrollY > 80);
-//     };
-
-//     handleScroll();
-
-//     window.addEventListener("scroll", handleScroll, {
-//       passive: true,
-//     });
-
-//     return () => {
-//       window.removeEventListener("scroll", handleScroll);
-//     };
-//   }, []);
-
-//   return (
-//     <nav
-//       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-//         scrolled ? "py-3" : "py-5"
-//       }`}
-//     >
-//       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-//         <div
-//           className={`flex h-20 items-center justify-between rounded-2xl px-6 transition-all duration-500 ${
-//             scrolled || mobileOpen
-//               ? "border border-white/10 bg-black/60 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45)]"
-//               : "bg-black/20 backdrop-blur-md"
-//           }`}
-//         >
-//           {/* Logo */}
-//           <Link to="/">
-//             <img
-//               src="/venus_logo.png"
-//               alt="Venus Logo"
-//               className="h-[140px] transition-transform duration-300 hover:scale-105"
-//             />
-//           </Link>
-
-//           {/* Desktop Menu */}
-//           <div className="hidden md:flex items-center gap-2">
-//             {navigation.map((item) => (
-//               <NavLink
-//                 key={item.name}
-//                 to={item.to}
-//                 end={item.end}
-//                 className={({ isActive }) =>
-//                   `group relative px-4 py-2 text-sm font-medium uppercase tracking-wider transition-all duration-300 ${
-//                     isActive
-//                       ? "text-amber-400"
-//                       : "text-white hover:text-amber-400"
-//                   }`
-//                 }
-//               >
-//                 {item.name}
-
-//                 <span
-//                   className="
-//                     absolute
-//                     left-1/2
-//                     bottom-0
-//                     h-[2px]
-//                     w-0
-//                     -translate-x-1/2
-//                     bg-gradient-to-r
-//                     from-amber-400
-//                     to-yellow-300
-//                     transition-all
-//                     duration-300
-//                     group-hover:w-3/4
-//                   "
-//                 />
-//               </NavLink>
-//             ))}
-//           </div>
-
-//           {/* Mobile Toggle */}
-//           <button
-//             type="button"
-//             onClick={() => setMobileOpen((v) => !v)}
-//             className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white backdrop-blur-md"
-//           >
-//             {mobileOpen ? (
-//               <span className="text-xl">✕</span>
-//             ) : (
-//               <span className="text-xl">☰</span>
-//             )}
-//           </button>
-//         </div>
-
-//         {/* Mobile Menu */}
-//         <div
-//           className={`overflow-hidden transition-all duration-500 md:hidden ${
-//             mobileOpen
-//               ? "mt-3 max-h-[500px] opacity-100"
-//               : "max-h-0 opacity-0"
-//           }`}
-//         >
-//           <div className="rounded-2xl border border-white/10 bg-black/70 p-3 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
-//             {navigation.map((item) => (
-//               <NavLink
-//                 key={item.name}
-//                 to={item.to}
-//                 end={item.end}
-//                 onClick={() => setMobileOpen(false)}
-//                 className={({ isActive }) =>
-//                   `block rounded-xl px-4 py-3 text-sm font-medium uppercase tracking-wider transition-all ${
-//                     isActive
-//                       ? "bg-white/10 text-amber-400"
-//                       : "text-white hover:bg-white/10"
-//                   }`
-//                 }
-//               >
-//                 {item.name}
-//               </NavLink>
-//             ))}
-//           </div>
-//         </div>
-//       </div>
-//     </nav>
-//   );
-// };
-
-// export default Navbar;

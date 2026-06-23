@@ -3,11 +3,14 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiJson } from "../lib/adminApi.js";
 import { uploadFileUrl } from "../config/api.js";
+import AdminFormModal from "./AdminFormModal.jsx";
+import AdminProjectCreateForm from "./AdminProjectCreateForm.jsx";
 
 export default function AdminProjects() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showCreate, setShowCreate] = useState(false);
   const ROWS_PER_PAGE = 6;
 
   const load = useCallback(async () => {
@@ -63,12 +66,13 @@ export default function AdminProjects() {
             Edit metadata, media, or remove projects.
           </p>
         </div>
-        <Link
-          to="/admin/projects/new"
+        <button
+          type="button"
+          onClick={() => setShowCreate(true)}
           className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#f27f26] to-amber-500 px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-md shadow-[#f27f26]/25 transition hover:opacity-95"
         >
           New project
-        </Link>
+        </button>
       </div>
 
       {loading ? (
@@ -196,6 +200,21 @@ export default function AdminProjects() {
           </div>
         </div>
       )}
+
+      {showCreate ? (
+        <AdminFormModal
+          title="New project"
+          subtitle="Image galleries or a single video card — same categories as the public portfolio."
+          backTo="/admin/projects"
+        >
+          <AdminProjectCreateForm
+            onCreated={() => {
+              setShowCreate(false);
+              load();
+            }}
+          />
+        </AdminFormModal>
+      ) : null}
     </div>
   );
 }

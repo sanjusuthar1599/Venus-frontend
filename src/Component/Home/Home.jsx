@@ -1,622 +1,528 @@
-import { createElement } from "react";
-import { Link } from "react-router-dom";
+import { createElement, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Navigation } from "swiper/modules";
 import {
-  ArrowDownIcon,
-  CalendarDaysIcon,
+  BuildingOffice2Icon,
+  CheckIcon,
   CheckBadgeIcon,
-  PaintBrushIcon,
-  MapPinIcon,
-  Square3Stack3DIcon,
-  HeartIcon,
-  MagnifyingGlassIcon,
-  PencilSquareIcon,
+  UserGroupIcon,
   WrenchScrewdriverIcon,
+  ClipboardDocumentListIcon,
+  PaintBrushIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa";
-import { useInView } from "../../hooks/useInView.js";
-import Budget from "./Budget.jsx";
-import Interior_Solutions from "./Interior_Solutions.jsx";
-import Statsconter from "./Statsconter.jsx";
+import { Armchair, Building2, LayoutGrid, Lamp } from "lucide-react";
+import { business } from "../../config/business.js";
+import BudgetProjectsSection from "../ui/BudgetProjectsSection.jsx";
+import GoogleReviewsSlider from "../ui/GoogleReviewsSlider.jsx";
+import HeroScene3D from "../ui/HeroScene3D.jsx";
+import { useSpotlight } from "../../hooks/useSpotlight.js";
 
-const highlights = [
+import "swiper/css";
+import "swiper/css/navigation";
+
+const HERO_VIDEO = "/hero_section.mp4";
+const HERO_POSTER = "/herosection.png";
+const WHY_CHOOSE_IMG = "/chooesimage.png";
+
+const services = [
   {
-    title: "Palette & light",
-    body: "We balance natural light, finishes, and color so rooms feel calm by day and warm at night.",
-    icon: PaintBrushIcon,
+    title: "Residential Design",
+    desc: "Beautiful homes tailored to your lifestyle.",
+    icon: Armchair,
   },
   {
-    title: "Plans you can build",
-    body: "Clear layouts, joinery, and specifications your contractors can price and execute without guesswork.",
-    icon: Square3Stack3DIcon,
+    title: "Commercial Design",
+    desc: "Functional spaces that inspire productivity and growth.",
+    icon: Building2,
   },
   {
-    title: "Lived-in comfort",
-    body: "Every choice is checked against real routines — storage, flow, and how your home actually feels to use.",
-    icon: HeartIcon,
+    title: "Modular & Custom",
+    desc: "Smart, stylish and space-saving solutions for every need.",
+    icon: LayoutGrid,
+  },
+  {
+    title: "Styling & Decor",
+    desc: "Finishing touches that bring your space to life.",
+    icon: Lamp,
   },
 ];
 
-const stats = [
-  { value: "12+", label: "Years shaping spaces" },
-  { value: "200+", label: "Projects delivered" },
-  { value: "18", label: "Countries & cities" },
-  { value: "100%", label: "Detail-led process" },
-];
-
-const heroSocials = [
+const portfolioProjects = [
   {
-    label: "Instagram",
-    href: "https://www.instagram.com/venus_interior_kalyan/",
-    icon: FaInstagram,
+    title: "Luxury Villa",
+    tag: "Modern Design",
+    category: "residential",
+    image:
+      "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=700&q=80",
   },
   {
-    label: "Facebook",
-    href: "https://www.facebook.com/p/Venus-Interiors-100064131730971/",
-    icon: FaFacebookF,
+    title: "Penthouse Interior",
+    tag: "Contemporary Style",
+    category: "residential",
+    image:
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=700&q=80",
   },
   {
-    label: "WhatsApp",
-    href: "https://wa.me/919653467488",
-    icon: FaWhatsapp,
-  },
-];
-
-const heroStats = [
-  {
-    value: "Modern Design",
-    label: "Timeless & Elegant",
-    icon: PaintBrushIcon,
+    title: "Corporate Office",
+    tag: "Minimal & Functional",
+    category: "commercial",
+    image:
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=700&q=80",
   },
   {
-    value: "Custom Solutions",
-    label: "Tailored to You",
-    icon: Square3Stack3DIcon,
+    title: "Elegant Apartment",
+    tag: "Warm & Cozy",
+    category: "residential",
+    image:
+      "https://images.unsplash.com/photo-1686056040370-b5e5c06c4273?q=80&w=1037&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
-    value: "Quality Assured",
-    label: "Premium Materials",
-    icon: CheckBadgeIcon,
+    title: "Retail Space",
+    tag: "Modern & Welcoming",
+    category: "commercial",
+    image:
+      "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=700&q=80",
   },
-];
-
-const showcaseTiles = [
   {
-    title: "Kitchens & joinery",
-    subtitle: "Modular systems, stone, and lighting planned as one composition.",
-    href: "/services",
+    title: "Modular Kitchen",
+    tag: "Smart & Functional",
+    category: "modular",
     image: "/MODULAR_KITCHEN.avif",
-    span: "hero",
   },
   {
-    title: "Wardrobes & storage",
-    subtitle: "Floor-to-ceiling clarity — every shelf earns its place.",
-    href: "/services",
+    title: "Master Bedroom",
+    tag: "Calm & Restful",
+    category: "residential",
+    image: "/Bedroom.avif",
+  },
+  {
+    title: "Executive Cabin",
+    tag: "Premium Workspace",
+    category: "commercial",
+    image: "/EXECUTIVE_CABINS.jpg",
+  },
+  {
+    title: "Custom Wardrobe",
+    tag: "Organized Living",
+    category: "modular",
     image: "/WARDROBES.avif",
-    span: "side",
   },
   {
-    title: "Workplaces",
-    subtitle: "Conference suites and cabins that read calm and capable.",
-    href: "/portfolio",
-    image: "/CONFERENC_ROOMS.avif",
-    span: "side",
+    title: "Living Room",
+    tag: "Family Comfort",
+    category: "residential",
+    image: "/Living-room.avif",
   },
 ];
 
 const processSteps = [
   {
-    step: "01",
-    title: "Discover",
-    body: "Site visit, measurements, and a shared visual direction so we hear you in images.",
-    icon: MagnifyingGlassIcon,
+    title: "Consultation",
+    desc: "We listen to your vision, lifestyle, and budget to understand your needs.",
+    icon: UserGroupIcon,
   },
   {
-    step: "02",
-    title: "Design",
-    body: "Layouts, materials, and joinery details priced before anything is ordered.",
-    icon: PencilSquareIcon,
+    title: "Concept & Design",
+    desc: "Mood boards, 3D renders, and material selections brought to life.",
+    icon: PaintBrushIcon,
   },
   {
-    step: "03",
-    title: "Build",
-    body: "Coordination on site — timelines, vendors, and snagging until execution matches the plan.",
+    title: "Planning & Execution",
+    desc: "Detailed planning, vendor coordination, and on-site supervision.",
     icon: WrenchScrewdriverIcon,
   },
   {
-    step: "04",
     title: "Handover",
-    body: "Styling, walkthrough, and support so the first week in the space feels effortless.",
+    desc: "Final styling, walkthrough, and support for a seamless move-in.",
     icon: SparklesIcon,
   },
 ];
 
-function staggerStyle(index) {
-  return {
-    transitionDelay: `${60 + index * 75}ms`,
-  };
-}
+const features = [
+  "Personalized Designs",
+  "Quality That Lasts",
+  "On-time Delivery",
+  "Transparent Communication",
+];
+
+const portfolioFilters = ["All", "Residential", "Commercial", "Modular"];
+
+const filterMap = {
+  All: null,
+  Residential: "residential",
+  Commercial: "commercial",
+  Modular: "modular",
+};
 
 const Home = () => {
-  const [featuresRef, featuresVisible] = useInView();
-  const [showcaseRef, showcaseVisible] = useInView();
-  const [processRef, processVisible] = useInView();
-  const [statsRef, statsVisible] = useInView();
-  const [quoteRef, quoteVisible] = useInView();
-  const [ctaRef, ctaVisible] = useInView();
+  const navigate = useNavigate();
+  const heroVideoRef = useRef(null);
+  const heroSectionRef = useSpotlight();
+  const [portfolioFilter, setPortfolioFilter] = useState("All");
 
-  const featuresSectionClass = featuresVisible
-    ? "home-section-visible"
-    : "home-section-hidden";
-  const statsSectionClass = statsVisible
-    ? "home-section-visible home-stat-pop"
-    : "home-section-hidden home-stat-pop";
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
 
-  const showcaseSectionClass = showcaseVisible
-    ? "home-section-visible"
-    : "home-section-hidden";
+    video.muted = true;
+    const play = () => {
+      video.play().catch(() => {});
+    };
 
-  const processSectionClass = processVisible
-    ? "home-section-visible"
-    : "home-section-hidden";
+    play();
+    video.addEventListener("loadeddata", play);
+    return () => video.removeEventListener("loadeddata", play);
+  }, []);
+
+  const filteredProjects = portfolioProjects.filter((p) => {
+    const key = filterMap[portfolioFilter];
+    return !key || p.category === key;
+  });
+
+  const feature = [
+    "Personalized Designs",
+    "Quality That Lasts",
+    "On-Time Delivery",
+    "Transparent Communication",
+  ];
 
   return (
-    <div className="w-full overflow-x-hidden">
-      {/* —— Hero —— */}
-      <section className="relative min-h-[100dvh] w-full overflow-hidden bg-neutral-950">
-        <video
-          className="absolute inset-0 z-0 h-full w-full scale-105 object-cover sm:scale-100"
-          src="/interior-render.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
+    <div className="w-full overflow-x-hidden bg-venus-cream">
+      {/* Hero */}
+      <section
+        ref={heroSectionRef}
+        className="home-hero-shell relative w-full overflow-hidden bg-venus-dark"
+      >
+        <div className="home-hero-media" aria-hidden>
+          <div className="home-hero-video-wrap">
+            <video
+              ref={heroVideoRef}
+              className="home-hero-video"
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster={HERO_POSTER}
+            >
+              <source src={HERO_VIDEO} type="video/mp4" />
+            </video>
+          </div>
+        </div>
+        <div className="hero-dark-overlay absolute inset-0 z-[1]" aria-hidden />
+        <div className="home-hero-vignette absolute inset-0 z-[1]" aria-hidden />
+        <HeroScene3D containerRef={heroSectionRef} />
+        <div className="home-hero-spotlight" aria-hidden />
 
-        <div
-          className="pointer-events-none absolute -left-1/4 top-1/4 z-[1] h-[min(80vw,28rem)] w-[min(80vw,28rem)] rounded-full bg-[#f27f26]/30 blur-[100px] home-hero-orb"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -right-1/4 bottom-0 z-[1] h-[min(90vw,32rem)] w-[min(90vw,32rem)] rounded-full bg-amber-400/25 blur-[110px] home-hero-orb--2"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[min(70vw,24rem)] w-[min(70vw,24rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-500/15 blur-[90px] home-hero-orb--3"
-          aria-hidden
-        />
-
-        <div
-          className="absolute inset-0 z-[2] bg-gradient-to-b from-black/35 via-black/20 to-black/65"
-          aria-hidden
-        />
-        <div
-          // className="absolute inset-0 z-[2] bg-[radial-gradient(ellipse_120%_80%_at_50%_0%,transparent_0%,rgba(0,0,0,0.45)_100%)]" black effect for image
-           className="absolute inset-0 z-[2]" 
-          aria-hidden
-        />
-
-        <div className="relative z-10 flex min-h-[100dvh] w-full flex-col items-center justify-center px-5 pb-[21rem] pt-28 text-center text-white sm:px-8 sm:pb-64 sm:pt-24 md:px-10 lg:pb-48">
-          <p className="home-animate-in home-animate-in--d1 mb-4 text-[10px] font-semibold uppercase tracking-[0.4em] text-amber-300/95 sm:text-xs sm:tracking-[0.35em]">
-            Venus Interior
-          </p>
-
-          <h1 className="home-animate-in home-animate-in--d2 max-w-5xl text-[1.65rem] font-bold uppercase leading-[1.12] tracking-tight sm:text-3xl md:text-4xl md:leading-[1.1] lg:text-5xl xl:text-6xl">
-            <span className="bg-gradient-to-r from-[#f27f26] via-amber-400 to-[#f27f26] bg-clip-text text-transparent">
-              We create amazing
-            </span>
-            <br />
-            <span className="text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)]">
-              interior designs
-            </span>
-          </h1>
-
-          <div className="home-animate-in home-animate-in--d3 mt-8 flex max-w-2xl items-start gap-4 text-left text-sm leading-relaxed text-white/92 sm:mt-10 sm:text-base md:mt-12">
-            <span
-              className="mt-1 h-14 w-1 shrink-0 rounded-full bg-gradient-to-b from-amber-300 to-[#f27f26] shadow-[0_0_20px_rgba(251,191,36,0.4)] sm:h-16"
-              aria-hidden
-            />
-            <p className="text-pretty">
-              Venus Interior brings spaces to life with thoughtful layout, light,
-              and materials. Explore our work and see how we shape environments you
-              will love to live in.
+        <div className="venus-container relative z-10 flex min-h-[inherit] flex-col justify-center pb-14 pt-[92px] sm:pb-16 sm:pt-[100px] lg:pb-20 lg:pt-[108px]">
+          <div className="w-full max-w-[560px]">
+            <p className="home-hero-eyebrow text-[10px] font-semibold uppercase tracking-[0.32em] text-[#b59461] sm:text-[11px]">
+              {business.tagline}
+              <span className="home-hero-accent" aria-hidden />
             </p>
-          </div>
+            <h1 className="home-hero-title font-serif mt-4 text-[2.15rem] font-medium leading-[1.08] text-white sm:mt-5 sm:text-[2.65rem] md:text-[3rem] lg:text-[3.35rem] lg:leading-[1.05]">
+              {business.headline}
+            </h1>
+            <p className="home-hero-desc mt-5 max-w-[440px] text-[14px] leading-[1.68] text-white/72 sm:mt-6 sm:text-[15px]">
+              {business.description}
+            </p>
 
-          <div className="home-animate-in home-animate-in--d4 mt-10 flex w-full max-w-md flex-col items-stretch gap-3 sm:mt-12 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4">
-            <Link
-              to="/portfolio"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-gradient-to-r from-[#f27f26] to-amber-500 px-8 py-3.5 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#f27f26]/30 transition duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-[#f27f26]/35 active:scale-[0.98]"
-            >
-              View our works
-            </Link>
-            <Link
-              to="/services"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-white/50 bg-white/10 px-8 py-3.5 text-sm font-semibold uppercase tracking-wide text-white backdrop-blur-md transition duration-300 hover:scale-[1.03] hover:border-white hover:bg-white hover:text-neutral-900 active:scale-[0.98]"
-            >
-              Our services
-            </Link>
-           </div>
-
-          <div className="home-animate-in home-animate-in--d4 absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col items-center gap-4 md:flex lg:left-8">
-            <span className="h-20 w-px bg-gradient-to-b from-transparent via-white/45 to-[#f27f26]" />
-            {heroSocials.map(({ label, href, icon }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-white/10 text-white backdrop-blur-md transition hover:-translate-y-1 hover:border-[#f27f26] hover:bg-[#f27f26]"
+            <div className="home-hero-actions mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
+              <Link
+                to="/portfolio"
+                className="home-btn-primary inline-flex min-h-[46px] w-full items-center justify-center rounded-[10px] px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] sm:min-h-[48px] sm:w-auto sm:min-w-[170px] sm:px-8 sm:text-[11px]"
               >
-                {createElement(icon, { className: "h-4 w-4" })}
-              </a>
-            ))}
-            <span className="h-20 w-px bg-gradient-to-b from-[#f27f26] via-white/45 to-transparent" />
-          </div>
-
-          {/* <div className="home-animate-in home-animate-in--d4 absolute right-4 top-1/2 hidden w-72 -translate-y-1/2 rounded-[1.6rem] border border-white/25 bg-white/88 p-4 text-left text-neutral-950 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.65)] backdrop-blur-2xl lg:block xl:right-10">
-            <div className="space-y-3">
-              {heroCards.map(({ title, body, icon }) => (
-                <div key={title} className="flex items-center gap-4 rounded-2xl p-2.5">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#f27f26]/20 bg-[#f27f26]/10 text-[#f27f26]">
-                    {createElement(icon, {
-                      className: "h-6 w-6",
-                      "aria-hidden": true,
-                    })}
-                  </span>
-                  <span>
-                    <span className="block text-sm font-bold">{title}</span>
-                    <span className="block text-xs text-neutral-600">{body}</span>
-                  </span>
-                </div>
-              ))}
+                Explore Projects
+              </Link>
+              <Link
+                to="/services"
+                className="home-btn-outline inline-flex min-h-[46px] w-full items-center justify-center rounded-[10px] px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] sm:min-h-[48px] sm:w-auto sm:min-w-[150px] sm:px-8 sm:text-[11px]"
+              >
+                Our Services
+              </Link>
             </div>
-          </div> */}
 
-          <div className="home-animate-in home-animate-in--d5 absolute bottom-8 left-5 right-5 z-20 sm:left-8 sm:right-8 lg:left-1/2 lg:right-auto lg:w-[min(48rem,calc(100%-12rem))] lg:-translate-x-1/2">
-            <div className="grid gap-3 rounded-[1.35rem] border border-white/20 bg-white/90 p-4 text-left text-neutral-900 shadow-[0_22px_80px_-46px_rgba(0,0,0,0.75)] backdrop-blur-2xl sm:grid-cols-2 lg:grid-cols-3 lg:gap-0">
-              {heroStats.map(({ value, label, icon }, index) => (
-                <div
-                  key={label}
-                  className={`flex items-center gap-3 ${
-                    index > 0 ? "lg:border-l lg:border-neutral-200 lg:pl-4" : ""
-                  }`}
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f27f26]/10 text-[#f27f26]">
+            <div className="home-hero-stats mt-10 flex flex-col gap-4 sm:mt-12 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-3 lg:gap-x-10">
+              {[
+                { icon: BuildingOffice2Icon, text: business.stats[0].label },
+                { icon: ClipboardDocumentListIcon, text: business.stats[1].label },
+                { icon: CheckBadgeIcon, text: business.stats[2].label },
+              ].map(({ icon, text }, index) => (
+                <div key={text} className="home-hero-stat flex items-center gap-3" style={{ "--stat-i": index }}>
+                  <span className="home-stat-icon flex h-6 w-6 shrink-0 items-center justify-center">
                     {createElement(icon, {
-                      className: "h-5 w-5",
+                      className: "h-[22px] w-[22px] stroke-[1.35]",
                       "aria-hidden": true,
                     })}
                   </span>
-                  <span>
-                    <span className="block text-lg font-semibold text-neutral-900 leading-none">
-                      {value}
-                    </span>
-                    <span className="mt-1 block text-[10px] font-medium leading-tight text-neutral-600">
-                      {label}
-                    </span>
-                  </span>
+                  <span className="home-stat-label">{text}</span>
                 </div>
               ))}
             </div>
           </div>
-
-          <a
-            href="#home-features"
-            aria-label="Scroll to main content"
-            className="home-animate-in home-animate-in--d5 home-scroll-dot absolute bottom-24 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-white/90 text-[#f27f26] shadow-lg backdrop-blur-md transition hover:bg-white sm:bottom-24 sm:right-8 lg:bottom-10"
-          >
-            <ArrowDownIcon className="h-5 w-5" />
-          </a>
         </div>
       </section>
 
-      {/* —— Features —— */}
-      <section
-        id="home-features"
-        className="relative border-t border-neutral-200/80 bg-gradient-to-b from-neutral-50 to-white py-16 sm:py-20 lg:py-0"
-      >
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f27f26]/30 to-transparent"
-          aria-hidden
-        />
-        <div
-          ref={featuresRef}
-          className={`mx-auto max-w-7xl px-5 sm:px-8 lg:px-10 ${featuresSectionClass}`}
-        >
-          <div
-            className="home-stagger-item mx-auto max-w-2xl text-center"
-            style={staggerStyle(0)}
-          >
-            <span
-              className="mx-auto mb-5 inline-flex h-1 w-16 rounded-full bg-gradient-to-r from-[#f27f26] via-amber-400 to-[#f27f26] shadow-sm shadow-[#f27f26]/20"
-              aria-hidden
-            />
-            <h2 className="text-2xl font-semibold uppercase tracking-[0.12em] text-neutral-900 sm:text-3xl lg:text-4xl">
-              Designed around you
+      {/* Services */}
+      <section className="home-services-section py-14 sm:py-16 lg:py-20">
+        <div className="venus-container">
+          <div className="home-services-header mx-auto max-w-2xl text-center">
+            <p className="font-bold text-[14px] uppercase tracking-[0.16em] text-[#b59461] sm:text-[15px]">What We Do</p>
+            <h2 className="font-serif mt-3 text-[1.85rem] font-bold leading-tight text-venus-black sm:text-[2.15rem] lg:text-[2.35rem]">
+              Elevated Interior Design Solutions
             </h2>
-            <p className="mt-4 text-pretty text-sm leading-relaxed text-neutral-600 sm:mt-5 sm:text-base lg:text-lg">
-              Residential and commercial interiors with one thread: clarity, warmth,
-              and craft — from first moodboard to the last lamp switched on.
+            <p className="home-services-desc mt-4 text-[14px] leading-relaxed text-venus-grey sm:text-[15px]">
+              From concept to completion, we design beautiful spaces that reflect your
+              style and elevate everyday living.
             </p>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:mt-16 sm:grid-cols-2 sm:gap-8 lg:mt-20 lg:grid-cols-3 lg:gap-10">
-            {highlights.map(({ title, body, icon }, idx) => (
-              <article
-                key={title}
-                className="home-stagger-item group relative overflow-hidden rounded-3xl border border-neutral-200/90 bg-white p-7 shadow-[0_20px_50px_-28px_rgba(15,23,42,0.2)] transition duration-500 hover:-translate-y-2 hover:border-[#f27f26]/25 hover:shadow-[0_28px_60px_-20px_rgba(242,127,38,0.18)] sm:p-8"
-                style={staggerStyle(1 + idx)}
-              >
-                <div
-                  className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-[#f27f26]/10 to-transparent opacity-0 transition duration-500 group-hover:opacity-100"
-                  aria-hidden
-                />
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-[#f27f26]/20 bg-gradient-to-br from-[#f27f26]/12 to-amber-400/10 text-[#f27f26] shadow-inner transition duration-300 group-hover:scale-110 group-hover:border-[#f27f26]/35">
-                  {createElement(icon, {
-                    className: "h-7 w-7",
-                    "aria-hidden": true,
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:mt-12 lg:grid-cols-4 lg:gap-6">
+            {services.map(({ title, desc, icon: Icon }) => (
+              <article key={title} className="home-services-card">
+                <span className="home-services-icon-wrap" aria-hidden>
+                  {createElement(Icon, {
+                    className: "home-services-icon",
+                    strokeWidth: 1.35,
                   })}
-                </div>
-                <h3 className="relative mt-6 text-lg font-semibold text-neutral-900 sm:text-xl">
-                  {title}
-                </h3>
-                <p className="relative mt-3 text-sm leading-relaxed text-neutral-600 sm:text-[15px]">
-                  {body}
-                </p>
+                </span>
+                <h3 className="home-services-card-title">{title}</h3>
+                <p className="home-services-card-desc">{desc}</p>
               </article>
             ))}
           </div>
 
-          <div
-            className="home-stagger-item mt-12 flex justify-center sm:mt-16 sm:mb-4"
-            style={staggerStyle(4)}
-          >
-            <Link
-              to="/about"
-              className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#f27f26] transition hover:gap-3 hover:text-amber-600"
-            >
-              About the studio
-              <span
-                className="inline-block transition group-hover:translate-x-0.5"
-                aria-hidden
-              >
-                →
-              </span>
+          <div className="mt-10 flex justify-center lg:mt-12">
+            <Link to="/services" className="home-services-cta">
+              View All Services
             </Link>
           </div>
         </div>
       </section>
 
-      {/* —— Editorial showcase (bento) —— */}
-      <section className="relative border-t border-neutral-200/80 bg-white py-16 sm:py-20 lg:py-16">
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent"
-          aria-hidden
-        />
-        <div
-          ref={showcaseRef}
-          className={`mx-auto max-w-7xl px-5 sm:px-8 lg:px-10 ${showcaseSectionClass}`}
-        >
-          <div
-            className="home-stagger-item mx-auto max-w-2xl text-center"
-            style={staggerStyle(0)}
-          >
-            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#f27f26]/20 bg-[#f27f26]/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-[#ea580c] sm:text-[11px]">
-              Signature spaces
-            </span>
-            <h2 className="text-2xl font-semibold uppercase tracking-[0.12em] text-neutral-900 sm:text-3xl lg:text-4xl">
-              Crafted for real life
-            </h2>
-            <p className="mt-4 text-pretty text-sm leading-relaxed text-neutral-600 sm:mt-5 sm:text-base lg:text-lg">
-              A glimpse of the categories we live in every day — kitchens, storage, and
-              workplaces built as one coherent story.
-            </p>
+      {/* Portfolio */}
+      <section className="home-portfolio-section py-14 sm:py-16 lg:py-20">
+        <div className="venus-container text-center">
+          <span className="home-portfolio-section__line" aria-hidden />
+          <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-venus-gold sm:text-[11px]">
+            Our Projects
+          </p>
+          <h2 className="font-serif mt-3 text-[1.65rem] font-medium text-venus-text sm:text-[1.9rem] lg:text-[2.1rem]">
+            Spaces We&apos;re Proud Of
+          </h2>
+
+          <div className="mt-5 flex flex-wrap items-center justify-center sm:mt-6">
+            {portfolioFilters.map((filter, index) => (
+              <span key={filter} className="flex items-center">
+                {index > 0 && (
+                  <span className="mx-3 text-[11px] text-venus-grey/35 sm:mx-4" aria-hidden>
+                    |
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPortfolioFilter(filter)}
+                  className={`home-portfolio-filter text-[10px] font-medium uppercase tracking-[0.18em] transition sm:text-[11px] ${
+                    portfolioFilter === filter ? "home-portfolio-filter--active" : ""
+                  }`}
+                >
+                  {filter}
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="venus-container mt-8 overflow-hidden lg:mt-10">
+          <div className="home-portfolio-slider relative overflow-hidden">
+            <Swiper
+              key={portfolioFilter}
+              modules={[Autoplay, Navigation]}
+              className="home-portfolio-swiper"
+              watchSlidesProgress
+              speed={750}
+              loop={filteredProjects.length > 3}
+              centeredSlides
+              spaceBetween={14}
+              autoplay={{
+                delay: 3200,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
+              navigation={{
+                prevEl: ".home-portfolio-prev",
+                nextEl: ".home-portfolio-next",
+              }}
+              breakpoints={{
+                0: { slidesPerView: 1, spaceBetween: 16, centeredSlides: true },
+                640: { slidesPerView: 1.12, spaceBetween: 14, centeredSlides: true },
+                1024: { slidesPerView: 2.15, spaceBetween: 16, centeredSlides: true },
+                1280: { slidesPerView: 3.15, spaceBetween: 18, centeredSlides: true },
+              }}
+            >
+              {filteredProjects.map((project) => (
+                <SwiperSlide key={project.title} className="home-portfolio-slide-wrap">
+                  <Link
+                    to="/portfolio"
+                    className="home-portfolio-card home-portfolio-slide group relative mx-auto block aspect-[3/4] w-full max-w-[384px] overflow-hidden rounded-[16px]"
+                  >
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.05]"
+                      loading="lazy"
+                    />
+                    <div className="home-portfolio-card-meta absolute bottom-0 left-0 z-10 w-full p-3 sm:p-3.5">
+                      <p className="home-portfolio-card-title text-[13px] font-semibold leading-tight text-white sm:text-[14px]">
+                        {project.title}
+                      </p>
+                      <p className="home-portfolio-card-tag mt-0.5 text-[10px] text-white/70 sm:text-[11px]">
+                        {project.tag}
+                      </p>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+
+            <button
+              type="button"
+              className="home-portfolio-prev"
+              aria-label="Previous project"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              className="home-portfolio-next"
+              aria-label="Next project"
+            >
+              ›
+            </button>
           </div>
 
-          <div className="mt-12 grid auto-rows-[minmax(200px,1fr)] gap-4 sm:gap-5 lg:mt-16 lg:grid-cols-12 lg:grid-rows-2 lg:gap-6">
-            {showcaseTiles.map((tile, idx) => {
-              const isHero = tile.span === "hero";
-              return (
-                <Link
-                  key={tile.title}
-                  to={tile.href}
-                  className={`home-stagger-item group relative isolate overflow-hidden rounded-3xl border border-neutral-200/90 bg-neutral-900 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] ring-1 ring-black/5 transition duration-500 hover:-translate-y-1 hover:shadow-[0_32px_70px_-24px_rgba(242,127,38,0.28)] hover:ring-[#f27f26]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f27f26] ${
-                    isHero
-                      ? "min-h-[280px] lg:col-span-7 lg:row-span-2 lg:min-h-[420px]"
-                      : "min-h-[220px] lg:col-span-5"
-                  }`}
-                  style={staggerStyle(1 + idx)}
-                >
-                  <img
-                    src={tile.image}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
-                    loading="lazy"
-                  />
-                  <div
-                    className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10 transition duration-500 group-hover:via-black/40"
-                    aria-hidden
-                  />
-                  <div className="relative flex h-full flex-col justify-end p-6 sm:p-8">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-300/95">
-                      {isHero ? "Featured" : "Explore"}
-                    </p>
-                    <h3 className="mt-2 text-xl font-semibold tracking-tight text-white sm:text-2xl">
-                      {tile.title}
-                    </h3>
-                    <p className="mt-2 max-w-md text-sm leading-relaxed text-white/85">
-                      {tile.subtitle}
-                    </p>
-                    <span className="mt-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white transition group-hover:gap-3">
-                      View details
-                      <span aria-hidden>→</span>
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
+          <div className="mt-4 flex justify-center sm:mt-5">
+            <Link
+              to="/portfolio"
+              className="inline-flex min-h-[46px] items-center justify-center rounded-[4px] bg-venus-gold px-9 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-venus-tan-dark sm:text-[11px]"
+            >
+              View All Projects
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* —— Process —— */}
-      <section className="relative bg-gradient-to-b from-neutral-50 to-white py-16 sm:py-20 lg:py-16">
-        <div
-          ref={processRef}
-          className={`mx-auto max-w-7xl px-5 sm:px-8 lg:px-10 ${processSectionClass}`}
-        >
-          <div
-            className="home-stagger-item mx-auto max-w-2xl text-center"
-            style={staggerStyle(0)}
-          >
-            <span
-              className="mx-auto mb-5 inline-flex h-1 w-16 rounded-full bg-gradient-to-r from-sky-500 via-[#f27f26] to-amber-400 shadow-sm"
-              aria-hidden
-            />
-            <h2 className="text-2xl font-semibold uppercase tracking-[0.12em] text-neutral-900 sm:text-3xl">
-              From first visit to handover
+      {/* Process */}
+      <section id="process" className="bg-white py-16 sm:py-20 lg:py-24">
+        <div className="venus-container">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-serif text-3xl font-medium text-venus-black sm:text-4xl">
+              From Vision To Reality
             </h2>
-            <p className="mt-4 text-sm leading-relaxed text-neutral-600 sm:text-base">
-              A clear path so design, budget, and site work stay aligned — no loose ends.
+            <p className="mt-4 text-sm text-venus-black/60 sm:text-[15px]">
+              A seamless journey from the first idea to your dream space.
             </p>
           </div>
 
           <div className="relative mt-14 lg:mt-20">
             <div
-              className="pointer-events-none absolute left-0 right-0 top-8 hidden h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent lg:block"
+              className="home-process-line absolute left-[12%] right-[12%] top-8 hidden h-px lg:block"
               aria-hidden
             />
             <ol className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-              {processSteps.map(({ step, title, body, icon }, idx) => (
-                <li
-                  key={step}
-                  className="home-stagger-item relative flex flex-col items-center text-center lg:items-start lg:text-left"
-                  style={staggerStyle(1 + idx)}
-                >
-                  <div className="relative z-[1] flex flex-col items-center lg:items-start">
-                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-[#f27f26] shadow-[0_12px_40px_-20px_rgba(15,23,42,0.15)] transition duration-300 hover:border-[#f27f26]/30 hover:shadow-[0_16px_44px_-18px_rgba(242,127,38,0.2)]">
-                      {createElement(icon, {
-                        className: "h-8 w-8",
-                        "aria-hidden": true,
-                      })}
-                    </span>
-                    <span className="mt-5 font-mono text-xs font-bold tabular-nums text-neutral-400">
-                      {step}
-                    </span>
-                    <h3 className="mt-1 text-lg font-semibold text-neutral-900">
-                      {title}
-                    </h3>
-                    <p className="mt-3 max-w-xs text-sm leading-relaxed text-neutral-600">
-                      {body}
-                    </p>
-                  </div>
+              {processSteps.map(({ title, desc, icon }) => (
+                <li key={title} className="relative flex flex-col items-center text-center">
+                  <span className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border border-venus-tan/40 bg-white text-venus-tan shadow-sm">
+                    {createElement(icon, { className: "h-7 w-7 stroke-[1.2]", "aria-hidden": true })}
+                  </span>
+                  <h3 className="mt-5 text-sm font-semibold uppercase tracking-[0.06em] text-venus-black">
+                    {title}
+                  </h3>
+                  <p className="mt-2 max-w-[200px] text-sm leading-relaxed text-venus-black/55">
+                    {desc}
+                  </p>
                 </li>
               ))}
             </ol>
           </div>
+        </div>
+      </section>
 
-          <div
-            className="home-stagger-item mt-14 flex flex-wrap items-center justify-center gap-4 sm:mt-16"
-            style={staggerStyle(5)}
-          >
-            <Link
-              to="/contact"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-gradient-to-r from-[#f27f26] to-amber-500 px-8 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#f27f26]/25 transition duration-300 hover:brightness-110"
-            >
-              Book a consultation
-            </Link>
-            <Link
-              to="/about"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full border-2 border-neutral-300 bg-white px-8 py-3 text-sm font-semibold uppercase tracking-wide text-neutral-800 transition hover:border-[#f27f26]/40 hover:text-[#f27f26]"
-            >
-              About us
-            </Link>
+      {/* Features & Testimonial */}
+      <section className="overflow-x-clip bg-black">
+        <div className="grid items-stretch lg:grid-cols-12">
+          <div className="home-why-image-wrap lg:col-span-5">
+            <img
+              src={WHY_CHOOSE_IMG}
+              alt="Luxury interior reading nook with armchair"
+              loading="lazy"
+            />
+          </div>
+
+          <div className="home-why-content flex flex-col justify-center bg-black px-5 py-6 sm:px-6 lg:col-span-4 lg:py-7 lg:pl-6 lg:pr-4 xl:pl-8 xl:pr-5">
+            <span className="mb-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-venus-gold">
+              Why Choose Us
+            </span>
+
+            <h2 className="font-serif text-[1.6rem] font-medium leading-[1.18] text-white sm:text-[1.85rem] lg:text-[2rem]">
+              Design That Reflects
+              <br />
+              Who You Are
+            </h2>
+
+            <ul className="mt-5 space-y-3.5 sm:mt-6">
+              {features.map((item) => (
+                <li key={item} className="flex items-center gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[5px] border border-venus-gold/75">
+                    <CheckIcon className="h-3 w-3 text-venus-gold" strokeWidth={2.2} aria-hidden />
+                  </span>
+                  <span className="text-[13px] text-gray-300 sm:text-[14px]">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="home-why-testimonial flex items-center justify-start bg-black px-5 py-6 sm:px-6 lg:col-span-3 lg:py-7 lg:pl-2 lg:pr-6 xl:pr-8">
+            <GoogleReviewsSlider />
           </div>
         </div>
       </section>
 
-      {/* interior_solutions */}
-      <Interior_Solutions />
+      <BudgetProjectsSection onProjectClick={() => navigate("/contact")} />
 
-      {/* —— Stats —— */}
-      <Statsconter />
-
-      {/* —— Quote —— */}
-      <section className="border-t border-neutral-200 bg-white py-16 sm:py-20 lg:py-16">
-        <div
-          ref={quoteRef}
-          className={`mx-auto max-w-4xl px-5 text-center transition-all duration-1000 ease-out sm:px-8 ${
-            quoteVisible
-              ? "translate-y-0 opacity-100"
-              : "translate-y-10 opacity-0"
-          }`}
-        >
-          <span
-            className="font-serif text-5xl leading-none text-[#f27f26]/25 sm:text-6xl"
-            aria-hidden
-          >
-            “
-          </span>
-          <blockquote className="-mt-2 text-lg font-medium leading-relaxed text-neutral-800 sm:text-xl lg:text-2xl">
-            Spaces should feel honest — light where you need it, quiet where you
-            rest, and detail where you linger.
-          </blockquote>
-          <span
-            className="mt-2 inline-block font-serif text-5xl leading-none text-[#f27f26]/25 sm:text-6xl"
-            aria-hidden
-          >
-            ”
-          </span>
-          <p className="mt-8 text-xs font-semibold uppercase tracking-[0.25em] text-[#f27f26] sm:text-sm">
-            Venus Interior
-          </p>
-        </div>
-      </section>
-
-
-            <Budget/>
-
-
-      {/* —— CTA —— */}
-      <section
-        ref={ctaRef}
-        className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 ${
-          ctaVisible ? "opacity-100" : "opacity-95"
-        } transition-opacity duration-700`}
-      >
-        <div
-          className="home-cta-shimmer absolute inset-0 bg-gradient-to-r from-[#f27f26] via-[#ea580c] to-amber-500"
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"
-          aria-hidden
-        />
-        <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-between gap-10 px-5 text-center sm:flex-row sm:gap-8 sm:px-8 sm:text-left lg:px-10">
-          <div className="max-w-xl">
-            <h2 className="text-2xl font-bold uppercase tracking-wide text-white drop-shadow-sm sm:text-3xl lg:text-4xl">
-              Ready to plan your next space?
+      {/* CTA Banner */}
+      <section className="relative overflow-hidden bg-venus-tan">
+        <div className="venus-container flex flex-col items-center gap-8 py-14 lg:flex-row lg:justify-between lg:py-16">
+          <div className="max-w-md text-center lg:text-left">
+            <h2 className="font-serif text-3xl font-medium text-white sm:text-4xl">
+              Ready To Design Your Dream Space?
             </h2>
-            <p className="mt-4 text-sm leading-relaxed text-white/90 sm:text-base">
-              Share your timeline and we will suggest the right design phase to start
-              from.
+            <p className="mt-3 text-sm text-white/85">
+              Let&apos;s create something beautiful together.
             </p>
           </div>
-          <div className="flex w-full max-w-sm shrink-0 flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-end">
+
+          <div className="flex flex-col items-center gap-2 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/90">
+              Book a free consultation
+            </p>
+            <p className="text-xs text-white/75">Get expert advice</p>
             <Link
-              to="/services"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-semibold uppercase tracking-wide text-neutral-900 shadow-lg transition duration-300 hover:scale-[1.03] hover:bg-neutral-100 active:scale-[0.98]"
+              to="/contact"
+              className="home-btn-dark mt-3 inline-flex min-h-[46px] items-center justify-center rounded-sm px-8 py-3 text-[10px] font-semibold uppercase tracking-[0.18em]"
             >
-              Start a project
+              Book a Consultation
             </Link>
-            <Link
-              to="/portfolio"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full border-2 border-white/90 bg-white/10 px-8 py-3 text-sm font-semibold uppercase tracking-wide text-white backdrop-blur-sm transition duration-300 hover:scale-[1.03] hover:bg-white/20 active:scale-[0.98]"
-            >
-              See portfolio
-            </Link>
+          </div>
+
+          <div className="relative hidden h-48 w-56 shrink-0 lg:block xl:h-56 xl:w-64">
+            <img
+              src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=80"
+              alt="Modern grey armchair"
+              className="absolute -bottom-8 right-0 h-auto w-full max-w-none object-contain drop-shadow-2xl"
+              loading="lazy"
+            />
           </div>
         </div>
       </section>

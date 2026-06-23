@@ -4,12 +4,18 @@ import About from "./About.jsx";
 import Services from "./Services.jsx";
 import Portfolio from "./Portfolio.jsx";
 import Contact from "./Contact.jsx";
+import Process from "./Process.jsx";
+import Blog from "./Blog.jsx";
 import AdminLogin from "../admin/AdminLogin.jsx";
 import AdminLayout from "../admin/AdminLayout.jsx";
 import AdminDashboard from "../admin/AdminDashboard.jsx";
 import AdminProjects from "../admin/AdminProjects.jsx";
 import AdminProjectNew from "../admin/AdminProjectNew.jsx";
 import AdminProjectEdit from "../admin/AdminProjectEdit.jsx";
+import AdminBlogs from "../admin/AdminBlogs.jsx";
+import AdminBlogNew from "../admin/AdminBlogNew.jsx";
+import AdminBlogEdit from "../admin/AdminBlogEdit.jsx";
+import AdminContactInquiries from "../admin/AdminContactInquiries.jsx";
 import RequireAuth from "../admin/RequireAuth.jsx";
 
 /**
@@ -29,6 +35,8 @@ const PageShell = () => {
         <Route path="/about" element={<About />} />
         <Route path="/services" element={<Services />} />
         <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/process" element={<Process />} />
+        <Route path="/blog" element={<Blog />} />
         <Route path="/contact" element={<Contact />} />
 
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -44,6 +52,10 @@ const PageShell = () => {
           <Route path="projects" element={<AdminProjects />} />
           <Route path="projects/new" element={<AdminProjectNew />} />
           <Route path="projects/:id/edit" element={<AdminProjectEdit />} />
+          <Route path="blogs" element={<AdminBlogs />} />
+          <Route path="blogs/new" element={<AdminBlogNew />} />
+          <Route path="blogs/:id/edit" element={<AdminBlogEdit />} />
+          <Route path="inquiries" element={<AdminContactInquiries />} />
         </Route>
       </Routes>
     </main>

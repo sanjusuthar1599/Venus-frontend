@@ -28,11 +28,14 @@ export default function AdminLayout() {
             <NavLink to="/admin" end className={navCls}>
               Dashboard
             </NavLink>
-            <NavLink to="/admin/projects" className={navCls}>
+            <NavLink to="/admin/projects" end className={navCls}>
               Portfolio
             </NavLink>
-            <NavLink to="/admin/projects/new" className={navCls}>
-              New project
+            <NavLink to="/admin/blogs" end className={navCls}>
+              Blogs
+            </NavLink>
+            <NavLink to="/admin/inquiries" end className={navCls}>
+              Contact Inquiry
             </NavLink>
           </nav>
           <div className="border-t border-neutral-100 p-3">
@@ -94,6 +97,7 @@ export default function AdminLayout() {
               </NavLink>
               <NavLink
                 to="/admin/projects"
+                end
                 className={({ isActive }) =>
                   `rounded-full px-3 py-1.5 text-xs font-semibold ${
                     isActive
@@ -105,7 +109,8 @@ export default function AdminLayout() {
                 Portfolio
               </NavLink>
               <NavLink
-                to="/admin/projects/new"
+                to="/admin/blogs"
+                end
                 className={({ isActive }) =>
                   `rounded-full px-3 py-1.5 text-xs font-semibold ${
                     isActive
@@ -114,7 +119,20 @@ export default function AdminLayout() {
                   }`
                 }
               >
-                New
+                Blogs
+              </NavLink>
+              <NavLink
+                to="/admin/inquiries"
+                end
+                className={({ isActive }) =>
+                  `rounded-full px-3 py-1.5 text-xs font-semibold ${
+                    isActive
+                      ? "bg-[#f27f26] text-white"
+                      : "bg-neutral-100 text-neutral-800"
+                  }`
+                }
+              >
+                Inquiries
               </NavLink>
             </nav>
           </div>

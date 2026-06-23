@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 import PageHero from "./PageHero.jsx";
+import SectionHeading from "./ui/SectionHeading.jsx";
+import CtaBanner from "./ui/CtaBanner.jsx";
 import Reveal from "./Reveal.jsx";
+import { serviceDetails } from "../config/content.js";
+import { submitInquiry } from "../lib/submitInquiry.js";
 
-const accentCyan = "text-[#0ea5e9]";
-const accentCyanDark = "text-[#0284c7]";
+const accentGoldDark = "text-venus-tan-dark";
 
 const serviceGrid = [
   {
@@ -102,21 +106,17 @@ const timelineOptions = [
   { value: "flexible", label: "Flexible" },
 ];
 
-function TaglineRule({ flip }) {
-  return (
-    <span
-      className={`inline-block h-px w-10 bg-gradient-to-r from-transparent via-sky-500 to-sky-500 sm:w-14 ${flip ? "rotate-180" : ""}`}
-      aria-hidden
-    />
-  );
-}
-
 const Services = () => {
   const location = useLocation();
+  const [activeService, setActiveService] = useState(0);
   const [selectedBhk, setSelectedBhk] = useState("2BHK");
   const [selectedRooms, setSelectedRooms] = useState(["Living room", "Kitchen"]);
   const [budget, setBudget] = useState("premium");
   const [timeline, setTimeline] = useState("planned");
+  const [plannerName, setPlannerName] = useState("");
+  const [plannerEmail, setPlannerEmail] = useState("");
+  const [plannerPhone, setPlannerPhone] = useState("");
+  const [plannerSubmitting, setPlannerSubmitting] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -170,46 +170,133 @@ const Services = () => {
     });
   };
 
+  async function sendPlannerBrief() {
+    if (!selectedRooms.length) {
+      toast.error("Please select at least one room.");
+      return;
+    }
+    if (!plannerName.trim()) {
+      toast.error("Please enter your name.");
+      return;
+    }
+    if (!plannerEmail.trim() && !plannerPhone.trim()) {
+      toast.error("Please add your email or phone number.");
+      return;
+    }
+
+    setPlannerSubmitting(true);
+    try {
+      const finishLabel =
+        budgetOptions.find((item) => item.value === budget)?.label || budget;
+      const result = await submitInquiry({
+        form_type: "project_planner",
+        name: plannerName.trim(),
+        email: plannerEmail.trim(),
+        phone: plannerPhone.trim(),
+        message: `Project planner brief for ${selectedBhk} — ${selectedRooms.join(", ")}`,
+        meta: {
+          bhk: selectedBhk,
+          rooms: selectedRooms,
+          finish_level: finishLabel,
+          timeline: plannerResult.timelineLabel,
+          recommended_package: plannerResult.packageName,
+          finish_direction: plannerResult.budgetNote,
+        },
+      });
+      toast.success(result.message || "Brief sent successfully");
+      setPlannerName("");
+      setPlannerEmail("");
+      setPlannerPhone("");
+    } catch (err) {
+      toast.error(err.message || "Could not send brief");
+    } finally {
+      setPlannerSubmitting(false);
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-white text-neutral-700">
+    <div className="min-h-screen bg-venus-cream text-venus-text">
       <PageHero
-        title="Services"
+        title="Our Interior Design Services"
         breadcrumbLabel="Services"
         imageSrc="/service.jpg"
-        imageGrayscale={false}
         size="tall"
       />
 
-      <section className="border-t border-neutral-100 bg-white px-5 py-16 sm:px-8 sm:py-20 lg:py-24">
-        <Reveal className="mx-auto max-w-6xl text-center">
-          <div className="flex items-center justify-center gap-3 sm:gap-4">
-            <TaglineRule />
-            <p className="text-xs font-bold uppercase tracking-[0.35em] text-[#f27f26] sm:text-sm">
-              Our services
-            </p>
-            <TaglineRule flip />
+      <section className="venus-section bg-white">
+        <div className="venus-container">
+          <Reveal>
+            <SectionHeading
+              label="What We Offer"
+              title="Elevated Interior Design Solutions"
+              description="Select a service to explore how we shape residential, commercial, and modular spaces."
+            />
+          </Reveal>
+
+          <div className="mt-12 grid gap-10 lg:mt-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
+            <Reveal variant="left">
+              <ul className="space-y-1 border-y border-black/5 py-2">
+                {serviceDetails.map((service, index) => {
+                  const active = activeService === index;
+                  return (
+                    <li key={service.title}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveService(index)}
+                        className={`w-full border-l-2 py-4 pl-5 text-left transition ${
+                          active
+                            ? "border-venus-gold bg-venus-cream/60"
+                            : "border-transparent hover:border-venus-gold/30"
+                        }`}
+                      >
+                        <span
+                          className={`venus-title block text-[1.1rem] sm:text-[1.2rem] ${
+                            active ? "text-venus-gold" : "text-venus-text"
+                          }`}
+                        >
+                          {service.title}
+                        </span>
+                        {active ? (
+                          <p className="venus-desc mt-2 text-venus-grey">{service.desc}</p>
+                        ) : null}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Reveal>
+
+            <Reveal variant="right" delay={80}>
+              <div className="overflow-hidden rounded-sm shadow-lg">
+                <img
+                  key={serviceDetails[activeService].image}
+                  src={serviceDetails[activeService].image}
+                  alt={serviceDetails[activeService].title}
+                  className="aspect-[4/3] w-full object-cover transition duration-500"
+                />
+              </div>
+            </Reveal>
           </div>
+        </div>
+      </section>
 
-          <h2 className="mx-auto mt-8 max-w-4xl text-2xl font-bold leading-tight tracking-tight text-neutral-900 sm:text-3xl md:text-4xl lg:text-[2.65rem] lg:leading-[1.15]">
-            Are you ready to experience{" "}
-            <span className={accentCyan}>the transformation?</span>
-          </h2>
-
-          <p className="mx-auto mt-6 max-w-2xl text-[15px] leading-relaxed text-neutral-500 sm:text-base">
-            Venus brings interior design, execution, and fit-out under one roof — from
-            modular kitchens and wardrobes to offices, structural coordination, and
-            turnkey delivery. We align materials, timelines, and craft so your space
-            feels finished, not rushed.
-          </p>
+      <section className="venus-section border-t border-black/5">
+        <div className="venus-container">
+        <Reveal className="text-center">
+          <SectionHeading
+            label="Our Services"
+            title="Complete Design & Build Solutions"
+            description="Venus brings interior design, execution, and fit-out under one roof — from modular kitchens and wardrobes to offices, structural coordination, and turnkey delivery."
+          />
         </Reveal>
 
-        <div className="mx-auto mt-14 max-w-7xl sm:mt-16 lg:mt-20">
-          <ul className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4 lg:gap-7">
+        <div className="mt-14">
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {serviceGrid.map(({ title, src, tag, body }, i) => (
               <li key={title}>
                 <Reveal delay={i * 55} variant={i % 3 === 1 ? "scale" : "up"}>
-                  <article className="group h-full overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-white shadow-[0_16px_46px_-26px_rgba(15,23,42,0.28)] transition duration-500 hover:-translate-y-1 hover:border-[#f27f26]/25 hover:shadow-[0_24px_60px_-24px_rgba(242,127,38,0.2)]">
-                  <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+                  <article className="venus-card group h-full overflow-hidden rounded-sm transition hover:-translate-y-0.5">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-venus-beige">
                     <img
                       src={src}
                       alt=""
@@ -217,17 +304,17 @@ const Services = () => {
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent opacity-75" />
-                    <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-800 backdrop-blur-sm">
+                    <span className="absolute left-4 top-4 rounded-sm bg-white/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-venus-text backdrop-blur-sm">
                       {tag}
                     </span>
                   </div>
                   <div className="p-5">
                     <h3
-                      className={`text-sm font-bold uppercase leading-tight tracking-[0.12em] ${accentCyanDark}`}
+                      className={`text-sm font-semibold uppercase leading-tight tracking-[0.12em] ${accentGoldDark}`}
                     >
                       {title}
                     </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+                    <p className="venus-desc mt-3 text-venus-grey">
                       {body}
                     </p>
                   </div>
@@ -238,40 +325,32 @@ const Services = () => {
           </ul>
         </div>
 
-        <div className="mx-auto mt-20 max-w-7xl sm:mt-24">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#f27f26]">
-              How we engage
-            </p>
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-neutral-950 sm:text-3xl">
-              Choose a design path that matches your stage
-            </h2>
+        <div className="mt-20">
+          <Reveal className="text-center">
+            <SectionHeading
+              label="How We Engage"
+              title="Choose A Design Path That Matches Your Stage"
+            />
           </Reveal>
 
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
             {packages.map((item, index) => (
               <Reveal key={item.name} delay={index * 80} variant="up">
-                <article className="flex h-full flex-col rounded-[1.75rem] border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 p-6 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.32)]">
+                <article className="venus-card flex h-full flex-col rounded-sm p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-neutral-400">
-                        {item.duration}
-                      </p>
-                      <h3 className="mt-2 text-xl font-semibold text-neutral-950">
-                        {item.name}
-                      </h3>
+                      <p className="venus-label !text-venus-grey">{item.duration}</p>
+                      <h3 className="venus-title mt-2 text-[1.15rem]">{item.name}</h3>
                     </div>
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f27f26]/10 text-sm font-bold text-[#f27f26]">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-venus-gold/25 bg-venus-cream text-sm font-semibold text-venus-gold">
                       0{index + 1}
                     </span>
                   </div>
-                  <p className="mt-4 text-sm leading-relaxed text-neutral-600">
-                    {item.bestFor}
-                  </p>
+                  <p className="venus-desc mt-4 text-venus-grey">{item.bestFor}</p>
                   <ul className="mt-6 space-y-3">
                     {item.includes.map((feature) => (
-                      <li key={feature} className="flex gap-3 text-sm text-neutral-700">
-                        <span className="mt-1 h-2 w-2 rounded-full bg-[#f27f26]" />
+                      <li key={feature} className="flex gap-3 venus-desc text-venus-text">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-venus-gold" />
                         {feature}
                       </li>
                     ))}
@@ -284,13 +363,13 @@ const Services = () => {
 
         <Reveal
           id="project-planner"
-          className="mx-auto mt-20 max-w-7xl scroll-mt-32 overflow-hidden rounded-[2rem] border border-neutral-200 bg-neutral-950 text-white shadow-[0_26px_70px_-30px_rgba(15,23,42,0.55)] sm:mt-24 lg:scroll-mt-36"
+          className="mt-20 scroll-mt-32 overflow-hidden rounded-sm border border-black/10 bg-venus-dark text-white shadow-xl lg:scroll-mt-36"
           variant="scale"
         >
           <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
             <div className="relative overflow-hidden p-7 sm:p-9 lg:p-10">
               <div
-                className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#f27f26]/20 blur-3xl"
+                className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-venus-gold/15 blur-3xl"
                 aria-hidden
               />
               <div
@@ -323,7 +402,7 @@ const Services = () => {
                           onClick={() => setSelectedBhk(bhk)}
                           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                             active
-                              ? "bg-gradient-to-r from-[#f27f26] to-amber-500 text-white shadow-lg shadow-[#f27f26]/25"
+                              ? "bg-venus-gold text-white shadow-lg shadow-venus-gold/25"
                               : "bg-white/10 text-white/80 hover:bg-white/15"
                           }`}
                         >
@@ -348,7 +427,7 @@ const Services = () => {
                           onClick={() => toggleRoom(room)}
                           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                             active
-                              ? "bg-gradient-to-r from-[#f27f26] to-amber-500 text-white shadow-lg shadow-[#f27f26]/25"
+                              ? "bg-venus-gold text-white shadow-lg shadow-venus-gold/25"
                               : "bg-white/10 text-white/80 hover:bg-white/15"
                           }`}
                         >
@@ -367,7 +446,7 @@ const Services = () => {
                     <select
                       value={budget}
                       onChange={(event) => setBudget(event.target.value)}
-                      className="mt-3 h-12 w-full rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white outline-none transition focus:border-[#f27f26]/60"
+                      className="mt-3 h-12 w-full rounded-sm border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white outline-none transition focus:border-venus-gold/60"
                     >
                       {budgetOptions.map((item) => (
                         <option key={item.value} value={item.value} className="text-neutral-900">
@@ -383,7 +462,7 @@ const Services = () => {
                     <select
                       value={timeline}
                       onChange={(event) => setTimeline(event.target.value)}
-                      className="mt-3 h-12 w-full rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white outline-none transition focus:border-[#f27f26]/60"
+                      className="mt-3 h-12 w-full rounded-sm border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white outline-none transition focus:border-venus-gold/60"
                     >
                       {timelineOptions.map((item) => (
                         <option key={item.value} value={item.value} className="text-neutral-900">
@@ -439,46 +518,51 @@ const Services = () => {
                   </p>
                 </div>
               </div>
-              
-              <Link
-                to="/contact"
-                className="mt-7 inline-flex w-full items-center justify-center rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-neutral-950 transition hover:bg-neutral-100"
+
+              <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                <input
+                  type="text"
+                  value={plannerName}
+                  onChange={(e) => setPlannerName(e.target.value)}
+                  placeholder="Your name"
+                  className="h-12 rounded-full border border-white/10 bg-white/10 px-4 text-sm text-white outline-none transition placeholder:text-white/40 focus:border-venus-gold/60"
+                />
+                <input
+                  type="email"
+                  value={plannerEmail}
+                  onChange={(e) => setPlannerEmail(e.target.value)}
+                  placeholder="Email"
+                  className="h-12 rounded-full border border-white/10 bg-white/10 px-4 text-sm text-white outline-none transition placeholder:text-white/40 focus:border-venus-gold/60"
+                />
+                <input
+                  type="tel"
+                  value={plannerPhone}
+                  onChange={(e) => setPlannerPhone(e.target.value)}
+                  placeholder="Phone"
+                  className="h-12 rounded-full border border-white/10 bg-white/10 px-4 text-sm text-white outline-none transition placeholder:text-white/40 focus:border-venus-gold/60 sm:col-span-2"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={sendPlannerBrief}
+                disabled={plannerSubmitting}
+                className="mt-7 inline-flex w-full items-center justify-center rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-neutral-950 transition hover:bg-neutral-100 disabled:opacity-60"
               >
-                Send this brief
-              </Link>
+                {plannerSubmitting ? "Sending…" : "Send this brief"}
+              </button>
             </div>
           </div>
         </Reveal>
-
-        <Reveal className="mx-auto mt-20 max-w-3xl sm:mt-24" variant="scale" delay={80}>
-        <div className="rounded-2xl border border-neutral-200 bg-neutral-50/80 px-8 py-12 text-center sm:px-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#f27f26]">
-            Next step
-          </p>
-          <h3 className="mt-3 text-xl font-semibold text-neutral-900 sm:text-2xl">
-            Tell us about your space
-          </h3>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-neutral-600">
-            We will reply with a short call outline and what to prepare for our first
-            conversation.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <a
-              href="mailto:hello@venusinterior.com"
-              className="inline-flex rounded-full bg-gradient-to-r from-[#f27f26] to-amber-500 px-8 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-md shadow-[#f27f26]/25 transition hover:brightness-110"
-            >
-              Request consultation
-            </a>
-            <Link
-              to="/portfolio"
-              className="inline-flex rounded-full border-2 border-sky-500 bg-white px-8 py-3 text-sm font-semibold uppercase tracking-wide text-sky-600 transition hover:bg-sky-50"
-            >
-              View portfolio
-            </Link>
-          </div>
         </div>
-        </Reveal>
       </section>
+
+      <CtaBanner
+        title="Have A Project In Mind?"
+        description="We will reply with a short call outline and what to prepare for our first conversation."
+        buttonText="Book a Consultation"
+        imageSrc="/MODULAR_KITCHEN.avif"
+      />
     </div>
   );
 };

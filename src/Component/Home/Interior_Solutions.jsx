@@ -210,7 +210,7 @@ const Interior_Solutions = () => {
           bottom: 0;
         }
 
-        .interior-solutions-slider .swiper-pagination-bullet {
+        .interior-solutions-slider . {
           width: 0.55rem;
           height: 0.55rem;
           background: #d4d4d4;
@@ -220,7 +220,7 @@ const Interior_Solutions = () => {
             background-color 220ms ease;
         }
 
-        .interior-solutions-slider .swiper-pagination-bullet-active {
+        .interior-solutions-slider .-active {
           width: 1.55rem;
           border-radius: 9999px;
           background: #f27f26;
