@@ -2352,6 +2352,20 @@ html {
   opacity: 0.85;
 }
 
+@media (pointer: coarse) {
+  .hero-scene-3d__canvas {
+    opacity: 0.95;
+  }
+
+  .hero-mouse-shell .home-hero-spotlight {
+    opacity: 0.55;
+  }
+
+  .hero-mouse-shell.has-spotlight .home-hero-spotlight {
+    opacity: 0.7;
+  }
+}
+
 .hero-scene-3d__shapes {
   position: absolute;
   inset: 0;
@@ -2434,10 +2448,13 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-hero-spotlight,
-  .hero-scene-3d,
   .tilt-3d-card__shine {
     display: none;
+  }
+
+  .hero-3d-shape--ring,
+  .hero-scene-3d__shapes .hero-3d-shape {
+    animation: none !important;
   }
 
   .venus-team-card:hover,

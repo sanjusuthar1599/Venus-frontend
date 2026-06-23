@@ -11,8 +11,30 @@ function createParticles(count, width, height) {
   }));
 }
 
+function pointerFromEvent(container, e) {
+  const rect = container.getBoundingClientRect();
+  let clientX;
+  let clientY;
+
+  if ("touches" in e && e.touches[0]) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else if ("clientX" in e) {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  } else {
+    return null;
+  }
+
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top,
+    active: true,
+  };
+}
+
 /**
- * Interactive particle network — particles follow the mouse cursor.
+ * Interactive particle network — works on desktop (mouse) and mobile (touch).
  */
 export default function HeroScene3D({ containerRef, particleCount = 56, className = "" }) {
   const canvasRef = useRef(null);
@@ -21,47 +43,53 @@ export default function HeroScene3D({ containerRef, particleCount = 56, classNam
 
   useEffect(() => {
     const container = containerRef?.current;
-    if (!container || reduced) return;
+    if (!container) return;
 
-    const finePointer = window.matchMedia("(pointer: fine)").matches;
-
-    const onMove = (e) => {
-      const rect = container.getBoundingClientRect();
-      mouseRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-        active: true,
-      };
+    const onPointer = (e) => {
+      const point = pointerFromEvent(container, e);
+      if (point) mouseRef.current = point;
     };
 
     const onLeave = () => {
       mouseRef.current.active = false;
     };
 
-    if (finePointer) {
-      container.addEventListener("mousemove", onMove);
-      container.addEventListener("mouseleave", onLeave);
-    }
+    container.addEventListener("mousemove", onPointer);
+    container.addEventListener("touchstart", onPointer, { passive: true });
+    container.addEventListener("touchmove", onPointer, { passive: true });
+    container.addEventListener("mouseleave", onLeave);
+    container.addEventListener("touchend", onLeave, { passive: true });
+    container.addEventListener("touchcancel", onLeave, { passive: true });
 
     return () => {
-      container.removeEventListener("mousemove", onMove);
+      container.removeEventListener("mousemove", onPointer);
+      container.removeEventListener("touchstart", onPointer);
+      container.removeEventListener("touchmove", onPointer);
       container.removeEventListener("mouseleave", onLeave);
+      container.removeEventListener("touchend", onLeave);
+      container.removeEventListener("touchcancel", onLeave);
     };
-  }, [containerRef, reduced]);
+  }, [containerRef]);
 
   useEffect(() => {
-    if (reduced) return;
-
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const count = reduced
+      ? Math.min(28, particleCount)
+      : coarse
+        ? Math.min(38, particleCount)
+        : particleCount;
+
     let particles = [];
     let raf = 0;
     let width = 0;
     let height = 0;
+    let ambientPhase = 0;
 
     const resize = () => {
       const parent = canvas.parentElement;
@@ -74,35 +102,46 @@ export default function HeroScene3D({ containerRef, particleCount = 56, classNam
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      particles = createParticles(particleCount, width, height);
+      particles = createParticles(count, width, height);
     };
 
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
-      const mouse = mouseRef.current;
 
-      if (mouse.active) {
+      let pointer = mouseRef.current;
+
+      if (!pointer.active && coarse) {
+        ambientPhase += 0.012;
+        pointer = {
+          x: width * (0.62 + Math.sin(ambientPhase) * 0.12),
+          y: height * (0.36 + Math.cos(ambientPhase * 0.85) * 0.1),
+          active: true,
+        };
+      }
+
+      if (pointer.active) {
         const glow = ctx.createRadialGradient(
-          mouse.x,
-          mouse.y,
+          pointer.x,
+          pointer.y,
           0,
-          mouse.x,
-          mouse.y,
-          140
+          pointer.x,
+          pointer.y,
+          coarse ? 110 : 140
         );
-        glow.addColorStop(0, "rgba(242, 127, 38, 0.14)");
+        glow.addColorStop(0, "rgba(242, 127, 38, 0.16)");
         glow.addColorStop(1, "transparent");
         ctx.fillStyle = glow;
         ctx.fillRect(0, 0, width, height);
       }
 
       for (const p of particles) {
-        if (mouse.active) {
-          const dx = mouse.x - p.x;
-          const dy = mouse.y - p.y;
+        if (pointer.active && !reduced) {
+          const dx = pointer.x - p.x;
+          const dy = pointer.y - p.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < 200 && dist > 0) {
-            const pull = (1 - dist / 200) * 0.06;
+          const reach = coarse ? 160 : 200;
+          if (dist < reach && dist > 0) {
+            const pull = (1 - dist / reach) * (coarse ? 0.045 : 0.06);
             p.vx += (dx / dist) * pull;
             p.vy += (dy / dist) * pull;
           }
@@ -118,10 +157,11 @@ export default function HeroScene3D({ containerRef, particleCount = 56, classNam
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(181, 148, 97, 0.7)";
+        ctx.fillStyle = "rgba(181, 148, 97, 0.75)";
         ctx.fill();
       }
 
+      const linkDist = coarse ? 100 : 120;
       for (let i = 0; i < particles.length; i += 1) {
         for (let j = i + 1; j < particles.length; j += 1) {
           const a = particles[i];
@@ -129,27 +169,28 @@ export default function HeroScene3D({ containerRef, particleCount = 56, classNam
           const dx = a.x - b.x;
           const dy = a.y - b.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < 120) {
+          if (dist < linkDist) {
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = `rgba(242, 127, 38, ${0.18 * (1 - dist / 120)})`;
+            ctx.strokeStyle = `rgba(242, 127, 38, ${0.2 * (1 - dist / linkDist)})`;
             ctx.lineWidth = 0.7;
             ctx.stroke();
           }
         }
       }
 
-      if (mouse.active) {
+      if (pointer.active && !reduced) {
+        const lineReach = coarse ? 130 : 160;
         for (const p of particles) {
-          const dx = mouse.x - p.x;
-          const dy = mouse.y - p.y;
+          const dx = pointer.x - p.x;
+          const dy = pointer.y - p.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < 160) {
+          if (dist < lineReach) {
             ctx.beginPath();
-            ctx.moveTo(mouse.x, mouse.y);
+            ctx.moveTo(pointer.x, pointer.y);
             ctx.lineTo(p.x, p.y);
-            ctx.strokeStyle = `rgba(181, 148, 97, ${0.25 * (1 - dist / 160)})`;
+            ctx.strokeStyle = `rgba(181, 148, 97, ${0.28 * (1 - dist / lineReach)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -167,9 +208,7 @@ export default function HeroScene3D({ containerRef, particleCount = 56, classNam
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
     };
-  }, [particleCount, reduced]);
-
-  if (reduced) return null;
+  }, [particleCount, reduced, containerRef]);
 
   return (
     <div className={`hero-scene-3d ${className}`} aria-hidden>
