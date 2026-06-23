@@ -1,6 +1,15 @@
-const raw = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
-// const raw = import.meta.env.VITE_API_URL ?? "https://venus-backend-f9lr.onrender.com";
+const PRODUCTION_API_URL = "https://venus-backend-f9lr.onrender.com";
+const DEVELOPMENT_API_URL = "http://localhost:5000";
 
+/**
+ * API base URL resolution:
+ * 1. VITE_API_URL env (set in Render / .env.local) — highest priority
+ * 2. Production build → live backend (never localhost on deployed site)
+ * 3. Local dev → localhost:5000
+ */
+const raw =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.PROD ? PRODUCTION_API_URL : DEVELOPMENT_API_URL);
 
 export const API_BASE_URL = String(raw).replace(/\/$/, "");
 
