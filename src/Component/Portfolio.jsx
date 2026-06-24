@@ -6,6 +6,8 @@ import CtaBanner from "./ui/CtaBanner.jsx";
 import BudgetProjectsSection from "./ui/BudgetProjectsSection.jsx";
 import Reveal from "./Reveal.jsx";
 import { API_BASE_URL, uploadFileUrl } from "../config/api.js";
+import { API_CACHE_KEYS, fetchJsonWithRetry } from "../lib/fetchWithRetry.js";
+import ApiLoadingNotice from "./ui/ApiLoadingNotice.jsx";
 import {
   fallbackProjects,
   portfolioFilters,
@@ -195,23 +197,34 @@ const Portfolio = () => {
   const [filter, setFilter] = useState("All");
   const [apiPosts, setApiPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [slowLoad, setSlowLoad] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [error, setError] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
+    setSlowLoad(false);
+    setRetryAttempt(0);
     setError(null);
+
+    const slowTimer = window.setTimeout(() => setSlowLoad(true), 4000);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/post`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const data = await fetchJsonWithRetry(`${API_BASE_URL}/post`, {
+        cacheKey: API_CACHE_KEYS.posts,
+        onRetry: (attempt) => setRetryAttempt(attempt),
+      });
       setApiPosts(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error(e);
       setError("Could not load projects. Showing featured work.");
       setApiPosts([]);
     } finally {
+      window.clearTimeout(slowTimer);
       setLoading(false);
+      setSlowLoad(false);
+      setRetryAttempt(0);
     }
   }, []);
 
@@ -293,6 +306,10 @@ const Portfolio = () => {
         <div className="venus-container mt-8 lg:mt-10">
           {error && !loading && apiPosts.length === 0 ? (
             <p className="mb-6 text-center text-sm text-venus-grey">{error}</p>
+          ) : null}
+
+          {loading ? (
+            <ApiLoadingNotice slow={slowLoad} retryAttempt={retryAttempt} />
           ) : null}
 
           {loading ? (

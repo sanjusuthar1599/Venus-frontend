@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, useLocation } from "react-router-dom";
+import { wakeBackend } from "./lib/wakeBackend.js";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AdminAuthProvider } from "./admin/AdminAuthContext.jsx";
@@ -24,6 +25,10 @@ function AppShell() {
 }
 
 const App = () => {
+  useEffect(() => {
+    wakeBackend();
+  }, []);
+
   return (
     <Router>
       <AdminAuthProvider>

@@ -6,6 +6,7 @@ import CtaBanner from "./ui/CtaBanner.jsx";
 import Reveal from "./Reveal.jsx";
 import { blogPosts } from "../config/content.js";
 import { API_BASE_URL, uploadFileUrl } from "../config/api.js";
+import { API_CACHE_KEYS, fetchJsonWithRetry } from "../lib/fetchWithRetry.js";
 
 function formatDate(value) {
   const d = value ? new Date(value) : null;
@@ -25,8 +26,9 @@ const Blog = () => {
     let alive = true;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/blogs`);
-        const data = await res.json().catch(() => []);
+        const data = await fetchJsonWithRetry(`${API_BASE_URL}/api/blogs`, {
+          cacheKey: API_CACHE_KEYS.blogs,
+        });
         if (!alive) return;
         setApiPosts(Array.isArray(data) ? data : []);
       } catch {

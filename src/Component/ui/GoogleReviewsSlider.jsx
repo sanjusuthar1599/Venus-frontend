@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import { API_BASE_URL } from "../../config/api.js";
+import { API_CACHE_KEYS, fetchJsonWithRetry } from "../../lib/fetchWithRetry.js";
 import { googleReviewsFallback } from "../../config/googleReviews.js";
 
 import "swiper/css";
@@ -57,8 +58,9 @@ export default function GoogleReviewsSlider() {
     let alive = true;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/reviews`);
-        const data = await res.json().catch(() => []);
+        const data = await fetchJsonWithRetry(`${API_BASE_URL}/api/reviews`, {
+          cacheKey: API_CACHE_KEYS.reviews,
+        });
         if (!alive) return;
         setApiReviews(Array.isArray(data) ? data : []);
       } catch {
